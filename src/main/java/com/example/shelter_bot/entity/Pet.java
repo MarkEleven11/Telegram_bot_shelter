@@ -2,7 +2,7 @@ package com.example.shelter_bot.entity;
 
 import com.example.shelter_bot.enums.PetType;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
@@ -12,17 +12,18 @@ public class Pet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    //@Column(name = "pet_type", nullable = false)
     @Enumerated (EnumType.STRING)
     private PetType petType;
 
-    @Column(name = "chat_id", nullable = false)
-    private long chatId;
+    private String petName;
 
-    public Pet(long id, PetType petType, long chatId) {
+    private boolean availability;
+
+    public Pet(long id, PetType petType, String petName, boolean availability) {
         this.id = id;
         this.petType = petType;
-        this.chatId = chatId;
+        this.petName = petName;
+        this.availability = availability;
     }
 
     public Pet() {}
@@ -43,13 +44,34 @@ public class Pet {
         this.petType = petType;
     }
 
-    public long getChatId() {
-        return chatId;
+    public String getPetName() {
+        return petName;
     }
 
-    public void setChatId(long chatId) {
-        this.chatId = chatId;
+    public void setPetName(String petName) {
+        this.petName = petName;
     }
 
+    public boolean isAvailability() {
+        return availability;
+    }
 
+    public void setAvailability(boolean availability) {
+        this.availability = availability;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        Pet test = (Pet) o;
+        return id == test.id && Objects.equals(petType, test.petType) &&
+                Objects.equals(petName, test.petName) &&
+                Objects.equals(availability, test.availability);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, petType, petName, availability);
+    }
 }

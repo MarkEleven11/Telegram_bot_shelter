@@ -5,4 +5,5 @@ CREATE TABLE pet
     chat_id                BIGINT    NOT NULL,
 );
 
-)
+
+
