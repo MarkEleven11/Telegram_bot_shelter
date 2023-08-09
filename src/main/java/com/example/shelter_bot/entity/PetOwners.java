@@ -1,12 +1,10 @@
 package com.example.shelter_bot.entity;
 
-import liquibase.pro.packaged.S;
-
 import javax.persistence.*;
 
 @Entity
 @Table(name = "owners")
-public class Cat0wners {
+public class PetOwners {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,19 +13,19 @@ public class Cat0wners {
     private Long ownerChatId;
 
     @Column(name = "name")
-    private String catOwnerName;
+    private String petOwnerName;
 
     @Column(name = "pet_name")
     private String petName;
 
-    public Cat0wners(Long id, Long ownerChatId, String catOwnerName, String petName) {
+    public PetOwners(Long id, Long ownerChatId, String petOwnerName, String petName) {
         this.id = id;
         this.ownerChatId = ownerChatId;
-        this.catOwnerName = catOwnerName;
+        this.petOwnerName = petOwnerName;
         this.petName = petName;
     }
 
-    public Cat0wners() {
+    public PetOwners() {
     }
 
     public void setId(Long id) {
@@ -47,12 +45,12 @@ public class Cat0wners {
         this.ownerChatId = ownerChatId;
     }
 
-    public String getCatOwnerName() {
-        return catOwnerName;
+    public String getPetOwnerName() {
+        return petOwnerName;
     }
 
-    public void setCatOwnerName(String catOwnerName) {
-        this.catOwnerName = catOwnerName;
+    public void setPetOwnerName(String petOwnerName) {
+        this.petOwnerName = petOwnerName;
     }
 
     public String getPetName() {
