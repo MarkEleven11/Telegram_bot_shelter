@@ -1,6 +1,7 @@
 package com.example.shelter_bot.listener;
 
 import com.example.shelter_bot.enums.Menu;
+import com.example.shelter_bot.keyboard.KeyBoard;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Message;
@@ -9,21 +10,22 @@ import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
-
+@Component
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
 
-    @Autowired
     private final TelegramBot telegramBot;
+    private final KeyBoard keyBoard;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, KeyBoard keyBoard) {
         this.telegramBot = telegramBot;
+        this.keyBoard = keyBoard;
     }
 
     @PostConstruct
