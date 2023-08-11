@@ -1,6 +1,7 @@
 package com.example.shelter_bot.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "owners")
@@ -59,5 +60,21 @@ public class PetOwners {
 
     public void setPetName(String petName) {
         this.petName = petName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o) return  false;
+        PetOwners test = (PetOwners) o;
+        return id.equals(id) &&
+                Objects.equals(ownerChatId, test.getOwnerChatId()) &&
+                Objects.equals(petOwnerName, test.getPetOwnerName()) &&
+                Objects.equals(petName, test.getPetName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, ownerChatId, petOwnerName, petName);
     }
 }

@@ -3,6 +3,7 @@ package com.example.shelter_bot.entity;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 public class Volunteer {
@@ -23,7 +24,7 @@ public class Volunteer {
     public Volunteer() {
     }
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
@@ -64,5 +65,10 @@ public class Volunteer {
                 Objects.equals(volunteerName, test.getVolunteerName()) &&
                 Objects.equals(chatId, test.getChatId()) &&
                 Objects.equals(available, test.isAvailable());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, volunteerName, chatId, available);
     }
 }
