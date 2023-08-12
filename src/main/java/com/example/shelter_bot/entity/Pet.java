@@ -13,11 +13,16 @@ public class Pet {
     private long id;
 
     //@Column(name = "pet_type", nullable = false)
+//    @ManyToOne
+//    @JoinColumn(name = "pet_type_id") может так надо
     @Enumerated (EnumType.STRING)
     private PetType petType;
 
     @Column(name = "chat_id", nullable = false)
     private long chatId;
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private Client client;
 
     public Pet(long id, PetType petType, long chatId) {
         this.id = id;

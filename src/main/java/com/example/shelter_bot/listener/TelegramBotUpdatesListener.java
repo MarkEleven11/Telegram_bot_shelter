@@ -1,6 +1,7 @@
 package com.example.shelter_bot.listener;
 
 import com.example.shelter_bot.enums.Menu;
+import com.example.shelter_bot.service.ClientService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Message;
@@ -21,6 +22,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     @Autowired
     private final TelegramBot telegramBot;
+    @Autowired
+    private ClientService clientService;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot) {
         this.telegramBot = telegramBot;
