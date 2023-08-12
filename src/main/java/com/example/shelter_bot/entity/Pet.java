@@ -1,11 +1,12 @@
 package com.example.shelter_bot.entity;
-
 import com.example.shelter_bot.enums.PetType;
-
 import jakarta.persistence.*;
-import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
 @Entity
+@Setter
 @Table(name = "pet")
 public class Pet {
     @Id
@@ -14,7 +15,7 @@ public class Pet {
 
     //@Column(name = "pet_type", nullable = false)
 //    @ManyToOne
-//    @JoinColumn(name = "pet_type_id") может так надо
+//    @JoinColumn(name = "pet_type_id")
     @Enumerated (EnumType.STRING)
     private PetType petType;
 
@@ -29,32 +30,7 @@ public class Pet {
         this.petType = petType;
         this.chatId = chatId;
     }
+    public Pet() {
 
-    public Pet() {}
-
-    public long getId() {
-        return id;
     }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public PetType getPetType() {
-        return petType;
-    }
-
-    public void setPetType(PetType petType) {
-        this.petType = petType;
-    }
-
-    public long getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(long chatId) {
-        this.chatId = chatId;
-    }
-
-
 }
