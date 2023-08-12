@@ -1,4 +1,5 @@
 package com.example.shelter_bot.entity;
+
 import com.example.shelter_bot.enums.PetType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,11 +13,10 @@ public class Pet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     //@Column(name = "pet_type", nullable = false)
 //    @ManyToOne
 //    @JoinColumn(name = "pet_type_id")
-    @Enumerated (EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private PetType petType;
 
     @Column(name = "chat_id", nullable = false)
@@ -30,6 +30,7 @@ public class Pet {
         this.petType = petType;
         this.chatId = chatId;
     }
+
     public Pet() {
 
     }
