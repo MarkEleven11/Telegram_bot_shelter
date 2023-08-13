@@ -1,8 +1,10 @@
 package com.example.shelter_bot.service;
 
+import com.example.shelter_bot.entity.Shelter;
 import com.example.shelter_bot.entity.Volunteer;
 import com.example.shelter_bot.exceptions.VolunteerNotFoundException;
 import com.example.shelter_bot.repository.VolunteerRepository;
+import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,18 +49,12 @@ public class VolunteerService {
     }
 
     //Метод вызова волонтера
-    public Volunteer callVolunteer(long chatId) {
-        Long volunteerId = getVolunteerById(chatId).getChatId();
-        if (volunteerId != null) {
-            return getVolunteerById(volunteerId);
-        } else {
-            List<Volunteer> list = getAllAvailableVolunteers();
-            if(list.size() > 0) {
-                Random random = new Random();
-                return list.get(random.nextInt(list.size()));
-            } else {
-                throw new VolunteerNotFoundException();
-            }
-        }
+    public SendMessage callVolunteer(Long chatId, Shelter shelter) {
+        String nickname = volunteerRepository.findAllById(shelter.getId()).stream()
+                .map(v -> v.getVolunteerName())
+                .findAny()
+                .orElseThrow(() -> new VolunteerNotFoundException());
+
+        return new SendMessage(chatId, "Вы можете связаться с волонтёром в Telegram: " + nickname);
     }
 }

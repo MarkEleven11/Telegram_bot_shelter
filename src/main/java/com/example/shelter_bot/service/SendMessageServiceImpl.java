@@ -3,7 +3,7 @@ package com.example.shelter_bot.service;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import com.pengrad.telegrambot.request.SendMessage;
 
 @Service
 public class SendMessageServiceImpl implements SendMessageService {
@@ -36,7 +36,7 @@ public class SendMessageServiceImpl implements SendMessageService {
      *
      * @param id   идентификатор пользователя.
      * @param text выводимое сообщение.
-     * @return {@link SendMessage}
+     * @return
      */
     @Override
     public SendMessage send(Long id, String text) {

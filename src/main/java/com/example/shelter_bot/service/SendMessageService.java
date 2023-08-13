@@ -1,7 +1,6 @@
 package com.example.shelter_bot.service;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-
+import com.pengrad.telegrambot.request.SendMessage;
 public interface SendMessageService {
     SendMessage shelterNotChoose(Long id);
 

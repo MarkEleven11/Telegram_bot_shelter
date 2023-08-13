@@ -9,4 +9,6 @@ public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
 
     List<Volunteer> findVolunteerByAvailableTrue();
 
+
+
 }
