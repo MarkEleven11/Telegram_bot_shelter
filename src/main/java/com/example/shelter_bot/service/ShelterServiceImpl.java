@@ -30,7 +30,7 @@ public class ShelterServiceImpl implements ShelterService {
         Shelter shelter = new Shelter();
         Optional<PetType> petTypeTest = Optional.ofNullable(petType);
         if (petTypeTest.isPresent()) {
-            shelter = shelterRepository.findShelterByPetTypeIs(petType.getDescription());
+            shelter = shelterRepository.findShelterByPetTypeIs(petType);
         }
         return shelter;
     }
