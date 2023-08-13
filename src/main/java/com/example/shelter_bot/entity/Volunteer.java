@@ -1,7 +1,7 @@
 package com.example.shelter_bot.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 import java.util.Optional;
 
@@ -9,9 +9,13 @@ import java.util.Optional;
 public class Volunteer {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column
     private String volunteerName;
+    @Column
     private Long chatId;
+    @Column
     private boolean available;
 
     public Volunteer(Long id, String volunteerName, Long chatId, boolean available) {

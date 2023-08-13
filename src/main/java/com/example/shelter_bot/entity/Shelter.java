@@ -1,11 +1,13 @@
-package pro.sky.entity;
+package com.example.shelter_bot.entity;
 
+import com.example.shelter_bot.enums.PetType;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+
 
 @Entity
 @Table(name = "shelter")
@@ -31,5 +33,5 @@ public class Shelter {
     @OneToMany(mappedBy = "shelter")
     private Set<Volunteer> volunteerSet = new HashSet<>();
     @OneToMany(mappedBy = "shelter")
-    private Set<User> userSet = new HashSet<>();
+    private Set<PetOwners> ownerSet = new HashSet<>();
 }

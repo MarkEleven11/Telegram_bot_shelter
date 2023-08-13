@@ -2,7 +2,6 @@ package com.example.shelter_bot.controller;
 
 import com.example.shelter_bot.entity.Client;
 import com.example.shelter_bot.service.ClientService;
-import org.junit.jupiter.api.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

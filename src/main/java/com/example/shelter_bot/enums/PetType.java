@@ -10,7 +10,7 @@ public enum PetType {
         this.description = description;
     }
 
-    public String getDescription() {
+    public PetType getDescription() {
         return description;
     }
 }

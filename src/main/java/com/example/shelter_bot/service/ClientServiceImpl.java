@@ -1,4 +1,4 @@
-package com.example.shelter_bot.service.Impl;
+package com.example.shelter_bot.service;
 
 import com.example.shelter_bot.entity.Client;
 import com.example.shelter_bot.repository.ClientRepository;

@@ -1,6 +1,7 @@
 package com.example.shelter_bot.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
 @Entity
@@ -11,6 +12,7 @@ public class PetOwners {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
     private Long ownerChatId;
 
     @Column(name = "name")

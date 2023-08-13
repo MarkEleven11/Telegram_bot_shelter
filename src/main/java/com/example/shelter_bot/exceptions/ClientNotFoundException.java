@@ -1,11 +1,8 @@
-package com.example.shelter_bot.exception;
+package com.example.shelter_bot.exceptions;
 
 public class ClientNotFoundException extends RuntimeException{
 
-    public ClientNotFoundException() {
-    }
-
     public ClientNotFoundException(String message) {
-        super(message);
+        super("Клиент не найден");
     }
 }
