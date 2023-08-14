@@ -1,8 +1,8 @@
 package com.example.shelter_bot.entity;
 
 import com.example.shelter_bot.enums.PetType;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
@@ -12,7 +12,7 @@ public class Pet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Enumerated (EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private PetType petType;
 
     private String petName;

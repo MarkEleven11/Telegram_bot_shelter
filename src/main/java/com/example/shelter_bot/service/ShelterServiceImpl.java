@@ -1,32 +1,36 @@
-package Services;
+package com.example.shelter_bot.service;
 
+import com.example.shelter_bot.entity.Shelter;
+import com.example.shelter_bot.enums.PetType;
+import com.example.shelter_bot.repository.ShelterRepository;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class ShelterServiceImpl implements ShelterService {
     private final ShelterRepository shelterRepository;
-    private final PetTypeRepository petTypeRepository;
 
-    public ShelterServiceImpl(ShelterRepository shelterRepository, PetTypeRepository petTypeRepository) {
+    public ShelterServiceImpl(ShelterRepository shelterRepository) {
         this.shelterRepository = shelterRepository;
-        this.petTypeRepository = petTypeRepository;
     }
 
     /**
      * Метод отвечает за выбор приюта, соответствующего определённому типу и вывод списка возможных действий.
      *
-     * @param type тип приюта.
      * @return {@link Shelter} nullable
      */
     @Override
-    public Shelter chooseShelter(String type) {
-        Shelter shelter = null;
-        Optional<PetType> petType = Optional.ofNullable(petTypeRepository.findPetTypeByTypeNameIgnoreCase(type));
-        if (petType.isPresent()) {
-            shelter = shelterRepository.findShelterByPetTypeIs(petType.get());
+    public Shelter chooseShelter(PetType petType) {
+        Shelter shelter = new Shelter();
+        Optional<PetType> petTypeTest = Optional.ofNullable(petType);
+        if (petTypeTest.isPresent()) {
+            shelter = shelterRepository.findShelterByPetTypeIs(petType);
         }
         return shelter;
     }
@@ -51,8 +55,8 @@ public class ShelterServiceImpl implements ShelterService {
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage start(pro.sky.entity.Shelter shelter, Long fromId) {
-        String mess = String.format(" * Тип приюта: %s * \nВыберите действие:", shelter.getPetType().getTypeName());
+    public SendMessage start(Shelter shelter, Long fromId) {
+        String mess = String.format(" * Тип приюта: %s * \nВыберите действие:", shelter.getPetType().toString());
         SendMessage sendMessage = new SendMessage(fromId, mess);
         sendMessage.parseMode(ParseMode.Markdown)
                 .replyMarkup(getKeyboard());
@@ -67,7 +71,7 @@ public class ShelterServiceImpl implements ShelterService {
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage aboutShelter(pro.sky.entity.Shelter shelter, Long fromId) {
+    public SendMessage aboutShelter(Shelter shelter, Long fromId) {
         return new SendMessage(fromId, shelter.getAbout()).replyMarkup(getKeyboard());
     }
 
@@ -94,7 +98,8 @@ public class ShelterServiceImpl implements ShelterService {
      */
     @Override
     public SendMessage infoShelter(Shelter shelter, Long fromId) {
-        String info = String.format("<strong>Вы можете найти нас по адресу:</strong> \n%s\n<strong>Наш график работы:</strong>\n%s\n<strong>Схема проезда: </strong>%s",
+        String info = String.format("<strong>Вы можете найти нас по адресу:</strong>" +
+                        " \n%s\n<strong>Наш график работы:</strong>\n%s\n<strong>Схема проезда: </strong>%s",
                 shelter.getAddress(), shelter.getSchedule(), shelter.getLocationMap());
         return new SendMessage(fromId, info).parseMode(ParseMode.HTML).replyMarkup(getKeyboard());
     }
