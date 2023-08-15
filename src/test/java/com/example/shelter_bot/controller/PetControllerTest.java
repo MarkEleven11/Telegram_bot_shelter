@@ -28,8 +28,6 @@ public class PetControllerTest {
     @Mock
     private PetRepository petRepository;
 
-    private Pet pet1;
-
     @MockBean
     private PetService petService;
 
@@ -37,7 +35,7 @@ public class PetControllerTest {
     @Test
     public void getPetByIdTest() {
         Long testId = 1L;
-        Pet pet = new Pet(testId, "Собака", PetType.DOG);
+        Pet pet = new Pet(testId, PetType.DOG, "Бобик", true);
         Mockito.when(petRepository.findById(testId)).thenReturn(Optional.of(pet));
         Pet result = petService.getPetById(testId);
         Assertions.assertEquals(pet, result);
