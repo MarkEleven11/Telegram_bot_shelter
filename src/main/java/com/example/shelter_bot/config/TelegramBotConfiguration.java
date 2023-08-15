@@ -13,8 +13,5 @@ public class TelegramBotConfiguration {
         return new TelegramBot(token);
 
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/feature-margo
+
