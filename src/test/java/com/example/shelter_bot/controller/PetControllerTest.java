@@ -25,6 +25,7 @@ public class PetControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private Pet testPet;
     @Mock
     private PetRepository petRepository;
 
@@ -44,15 +45,15 @@ public class PetControllerTest {
     @Test
     void addPetTest() {
         Long testId = 1L;
-        Pet petTest = new Pet(testId, "Кот", PetType.CAT);
-        assertEquals(petTest, pet1);
+        Pet petTest = new Pet(testId, PetType.CAT, "Рыжик", true);
+        assertEquals(petTest, testPet);
     }
 
 
     @Test
     public void updatePetTest() {
         Long testId = 1L;
-        Pet pet = new Pet(testId, "Собака", PetType.DOG);
+        Pet pet = new Pet(testId, PetType.DOG, "Кокос", true);
 
 
         Pet updatedPet = petService.updatePet(pet);
