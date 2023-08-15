@@ -5,7 +5,7 @@ import com.example.shelter_bot.service.ClientService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/client")
@@ -22,17 +22,16 @@ public class ClientController {
                 client.getAddress() == null) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(clientService.saveClientToRepository(client));
+        return ResponseEntity.ok(clientService.createClient(client));
     }
 
 
     @GetMapping("/get")
-    public ResponseEntity<Optional<Client>> getClient(@RequestParam (name = "id") Long id) {
-        if (id == null) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<List<Client>> getClientById() {
+        List<Client> findClientById = clientService.findAllClients();
+        if (findClientById == null) {
+            return ResponseEntity.notFound().build();
         }
-        Optional<Client> client = clientService.findClient(id);
-        return ResponseEntity.ok(client);
+        return ResponseEntity.ok(findClientById);
     }
-
 }

@@ -10,7 +10,6 @@ import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.example.shelter_bot.entity.User;
 import com.pengrad.telegrambot.response.SendResponse;
-import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.example.shelter_bot.service.StartService;
 import com.example.shelter_bot.service.SendMessageService;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
+
     private final TelegramBot telegramBot;
 
     /**
@@ -150,8 +151,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             userService.writeContact(user);
                             telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
                         } else if (contactClientFlag) {
-                            Client client = clientService.parseClientData(id, String.valueOf(message));
-                            clientService.saveClientToRepository(client);
+                            Client client = clientService.createClient(new Client());
+                            //clientService.createClient(client);
                             telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
                         } else {
                             telegramBot.execute(sendMessageService.commandIncorrect(id));
