@@ -1,8 +1,8 @@
 package com.example.shelter_bot.entity;
 
 import com.example.shelter_bot.enums.PetType;
-import jakarta.persistence.*;
 
+import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,8 +11,9 @@ import java.util.Set;
 @Table(name = "shelter")
 public class Shelter {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+    @Column(name = "name_shelter", nullable = false)
     private String name;
     @Column(nullable = false)
     private String address;
