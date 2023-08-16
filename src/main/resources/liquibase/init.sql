@@ -11,7 +11,7 @@ CREATE TABLE client
     name_client            TEXT      NOT NULL,
     phoneNumber            INT       NOT NULL,
     address                TEXT      NOT NULL,
-    pet_set                TEXT      NOT NULL
+    pet_set                TEXT      NOT NULL REFERENCES pet (id)
 );
 
 CREATE TABLE shelter
@@ -24,8 +24,8 @@ CREATE TABLE shelter
     guard                  TEXT      NOT NULL,
     location_map           TEXT      NOT NULL,
     pet_type               TEXT      NOT NULL,
-    volunteerSet           TEXT      NOT NULL,
-    ownerSet               TEXT      NOT NULL
+    volunteerSet           TEXT      NOT NULL REFERENCES volunteers (id),
+    ownerSet               TEXT      NOT NULL REFERENCES users (id)
 );
 
 CREATE TABLE users

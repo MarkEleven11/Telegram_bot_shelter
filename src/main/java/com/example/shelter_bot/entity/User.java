@@ -25,6 +25,13 @@ public class User {
     @Column(name = "user_chat_id")
     private Long userChatId;
 
+    public User(String name, String phoneNumber, Shelter shelter, Long userChatId) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.shelter = shelter;
+        this.userChatId = userChatId;
+    }
+
     public User(String name, String phoneNumber, Shelter shelter) {
         this.name = name;
         this.phoneNumber = phoneNumber;
