@@ -42,7 +42,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private final ClientService clientService;
     private final StartService startService = new StartServiceImpl();
     private final SendMessageService sendMessageService = new SendMessageServiceImpl();
-    private final Pattern pattern = Pattern.compile("(\"\\D+\")\\s+(\"\\d{10,11}\")");
+    final Pattern pattern = Pattern.compile("(\"\\D+\")\\s+(\"\\d{10,11}\")");
     boolean contactUserFlag;
     boolean contactClientFlag;
 

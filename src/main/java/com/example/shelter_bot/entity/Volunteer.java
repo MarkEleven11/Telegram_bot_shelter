@@ -1,19 +1,18 @@
 package com.example.shelter_bot.entity;
 
-import jakarta.persistence.*;
-
+import javax.persistence.*;
 import java.util.Objects;
-import java.util.Optional;
 
 @Entity
+@Table(name = "volunteers")
 public class Volunteer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column
+    @Column(name = "name_volunteer")
     private String volunteerName;
-    @Column
+    @Column(name = "chat_id")
     private Long chatId;
     @Column
     private boolean available;

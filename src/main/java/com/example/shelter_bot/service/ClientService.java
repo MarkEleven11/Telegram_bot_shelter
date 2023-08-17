@@ -1,7 +1,6 @@
 package com.example.shelter_bot.service;
 
 import com.example.shelter_bot.entity.Client;
-import com.example.shelter_bot.exceptions.ClientNotFoundException;
 import com.example.shelter_bot.repository.ClientRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,30 +22,28 @@ public class ClientService {
 
 
     //Получение клиена по Id
-    public Client getClientById(Long id) {
-        return this.clientRepository.findById(id).orElseThrow(ClientNotFoundException::new);
+    public Client getClientById(Long Id) {
+        return clientRepository.findClientById(Id);
     }
 
 
     //Внесение изменений
-    Client updateClient(Client client) {
-        Client findClient = getClientById(client.getId());
-        if (findClient == null) {
-            throw new ClientNotFoundException();
-        }
-        return clientRepository.save(client);
+    public Client updateClient(Client client) {
+        return clientRepository.findById(client.getId())
+                .map(c -> clientRepository.save(client))
+                .orElse(null);
     }
 
 
     //Список клиентов
     public List<Client> findAllClients() {
-         return (List<Client>) clientRepository.findAll();
+        return clientRepository.findAll();
     }
 
 
     //Удаление клиента
-    public void deleteClient(Long Id){
-        clientRepository.deleteById(Id);
+    public void deleteClient(Long id) {
+        clientRepository.deleteById(id);
     }
 
 }
