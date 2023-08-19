@@ -37,6 +37,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private static final HashMap<Long, Shelter> clientIdToShelter = new HashMap<>();
 
     private final UserService userService;
+    private final ReportDataService reportDataService;
     private final ShelterService shelterService;
     private final VolunteerService volunteerService;
     private final ClientService clientService;
@@ -47,10 +48,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     boolean contactClientFlag;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot, UserService userService,
-                                      ShelterService shelterService, VolunteerService volunteerService,
+                                      ReportDataService reportDataService, ShelterService shelterService, VolunteerService volunteerService,
                                       ClientService clientService) {
         this.telegramBot = telegramBot;
         this.userService = userService;
+        this.reportDataService = reportDataService;
         this.shelterService = shelterService;
         this.volunteerService = volunteerService;
         this.clientService = clientService;

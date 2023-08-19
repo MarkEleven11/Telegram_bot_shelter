@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-
+import javax.persistence.*;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Lob;
 import java.util.Date;
@@ -20,6 +20,8 @@ import java.util.Date;
 public class ReportData {
     @GeneratedValue
     @Id
+//    @Entity
+
     private long id;
     private Long chatId;
     private String name;
