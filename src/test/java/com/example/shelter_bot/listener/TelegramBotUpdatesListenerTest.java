@@ -54,4 +54,6 @@ class TelegramBotUpdatesListenerTest {
 
         Assertions.assertThat(actual.getParameters().get("text"));
     }
+
+
 }

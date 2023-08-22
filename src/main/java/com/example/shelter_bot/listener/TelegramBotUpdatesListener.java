@@ -1,14 +1,21 @@
 package com.example.shelter_bot.listener;
 
 import com.example.shelter_bot.entity.Client;
+import com.example.shelter_bot.entity.Volunteer;
 import com.example.shelter_bot.enums.PetType;
 import com.example.shelter_bot.entity.Shelter;
 import com.example.shelter_bot.service.*;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
+import com.pengrad.telegrambot.model.File;
 import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
 import com.example.shelter_bot.entity.User;
+import com.pengrad.telegrambot.request.ForwardMessage;
+import com.pengrad.telegrambot.request.GetFile;
+import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -18,6 +25,9 @@ import com.example.shelter_bot.service.StartService;
 import com.example.shelter_bot.service.SendMessageService;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -167,4 +177,88 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 logger.error(e.getMessage(), e);
             }
         }
+
+    /**
+     * Метод отправки текстовых сообщений.
+     *
+     * @param id
+     * @param text
+     */
+    public void sendResponseMessage(long id, String text) {
+        SendMessage sendMessage = new SendMessage(id, text);
+        SendResponse sendResponse = telegramBot.execute(sendMessage);
+        if (!sendResponse.isOk()) {
+            logger.error("Error during sending message: {}", sendResponse.description());
+        }
+    }
+
+    /**
+     * Метод пересылки сообщения волонтеру
+     *
+     * @param chatId
+     * @param messageId
+     */
+    public void sendMessageToVolunteer(long chatId, int messageId) {
+        Volunteer volunteer = new Volunteer();
+        ForwardMessage forwardMessage = new ForwardMessage(volunteer.getId(), chatId, messageId);
+        SendResponse sendResponse = telegramBot.execute(forwardMessage);
+        if (!sendResponse.isOk()) {
+            logger.error("Error during sending message: {}", sendResponse.description());
+        }
+    }
+
+    /**
+     * Метод получения отчета и отправки его волонтеру
+     *
+     * @param message
+     */
+    public void getReport(Message message, String petName) {
+        PhotoSize photo = message.photo()[0];
+        String caption = message.caption();
+        Long chatId = message.chat().id();
+
+        List<String> captionMatcher = splitCaption(caption);
+
+        String ration = captionMatcher.get(0);
+        String health = captionMatcher.get(1);
+        String behaviour = captionMatcher.get(2);
+
+        GetFile getFile = new GetFile(photo.fileId());
+        GetFileResponse getFileResponse = telegramBot.execute(getFile);
+
+        try {
+            File file = getFileResponse.file();
+            byte[] fileContent = telegramBot.getFileContent(file);
+
+            long date = message.date();
+            Date lastMessage = new Date(date * 1000);
+            reportDataService.uploadReportData(
+                    chatId, petName, fileContent, ration,
+                    health, behaviour, lastMessage);
+            sendMessageToVolunteer(chatId, message.messageId());
+            sendResponseMessage(chatId, "Your report has been accepted!");
+        } catch (IOException e) {
+            System.out.println("Photo upload error!");
+        }
+
+    }
+
+    /**
+     * Метод для разбивки описания под фотографии для добавления полученного текста в отчет
+     *
+     * @param caption
+     * @return
+     */
+    private List<String> splitCaption(String caption) {
+        if (caption == null || caption.isBlank()) {
+            throw new IllegalArgumentException("The description under the photo should not be empty. Resend the report!");
+        }
+        Matcher matcher = pattern.matcher(caption);
+        if (matcher.find()) {
+            return new ArrayList<>(List.of(matcher.group(3), matcher.group(7), matcher.group(11)));
+        } else {
+            throw new IllegalArgumentException("Check the correct of the entered data and send the report again.");
+        }
+    }
+
 }
