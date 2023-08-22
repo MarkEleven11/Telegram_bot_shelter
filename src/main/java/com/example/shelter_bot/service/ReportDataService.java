@@ -10,15 +10,16 @@ import java.util.Date;
 import java.util.List;
 /**
  * Класс сервис отчетов
- * @author Королёв Артем
  **/
 @Service
 @Transactional
 public class ReportDataService {
     private final ReportDataRepository repository;
+
     public ReportDataService(ReportDataRepository reportRepository) {
         this.repository = reportRepository;
     }
+
     public void uploadReportData(Long chatId,String name, byte[] pictureFile,
                                  String ration, String health, String behaviour,
                                  Date lastMessage) throws IOException {
@@ -32,22 +33,24 @@ public class ReportDataService {
         report.setLastMessage(lastMessage);
         this.repository.save(report);
     }
+
     public ReportData findById(Long id) {
         return this.repository.findById(id)
-                .orElseThrow(()->new ReportDataNotFoundException("Data not found exceptions"));
+                .orElseThrow(()->new ReportDataNotFoundException());
     }
+
     public ReportData findByChatId(Long chatId) {
         return this.repository.findByChatId(chatId);
     }
-    public Collection<ReportData> findListByChatId(Long chatId) {
-        return this.repository.findListByChatId(chatId);
-    }
+
     public ReportData save(ReportData report) {
         return this.repository.save(report);
     }
+
     public void remove(Long id) {
         this.repository.deleteById(id);
     }
+
     public List<ReportData> getAll() {
         return this.repository.findAll();
     }

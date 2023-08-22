@@ -1,28 +1,20 @@
 package com.example.shelter_bot.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+
 import javax.persistence.*;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Lob;
 import java.util.Date;
 
-/**
- * Отчеты
- **/
-
-@AllArgsConstructor
+@Entity
+@Table(name = "report")
 @Data
 @NoArgsConstructor
-
 public class ReportData {
-    @GeneratedValue
+    @javax.persistence.Id
     @Id
-//    @Entity
-
-    private long id;
+    private Long id;
     private Long chatId;
     private String name;
     private String health;
@@ -41,4 +33,13 @@ public class ReportData {
         this.lastMessage = lastMessage;
         this.data = data;
     }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.example.shelter_bot.entity;
 
 import com.example.shelter_bot.enums.PetType;
-import jakarta.persistence.*;
 
 import javax.persistence.*;
 import java.util.Objects;
