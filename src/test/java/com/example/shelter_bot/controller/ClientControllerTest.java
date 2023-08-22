@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
-class ClientControllerTest {
+public class ClientControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

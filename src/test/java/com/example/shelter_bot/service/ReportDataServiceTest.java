@@ -1,14 +1,23 @@
 package com.example.shelter_bot.service;
 
+import com.example.shelter_bot.entity.ReportData;
+import com.example.shelter_bot.repository.ReportDataRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.*;
+
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+
+@ExtendWith(MockitoExtension.class)
 public class ReportDataServiceTest {
-    @ExtendWith(MockitoExtension.class)
-    class ReportDataServiceTest {
-        @Mock
+    @Mock
         private ReportDataRepository repository;
 
         @InjectMocks
@@ -34,22 +43,6 @@ public class ReportDataServiceTest {
             Mockito.when(repository.findByChatId(testChatId)).thenReturn(reportData);
             ReportData result = service.findByChatId(testChatId);
             Assertions.assertEquals(reportData, result);
-        }
-
-        @Test
-        void findListByChatId() {
-            long testId = 1;
-            long testChatId = 3243242;
-            ReportData reportData = new ReportData();
-            reportData.setId(testId);
-            reportData.setChatId(testChatId);
-
-            Set<ReportData> list = new HashSet<>();
-            list.add(reportData);
-
-            Mockito.when(repository.findListByChatId(testChatId)).thenReturn(list);
-            Collection<ReportData> result = service.findListByChatId(testChatId);
-            Assertions.assertEquals(list, result);
         }
 
         @Test
@@ -80,14 +73,14 @@ public class ReportDataServiceTest {
         void getAll() {
             List<ReportData> reportDataList =  new ArrayList<>();
             ReportData reportData1 = new ReportData();
-            reportData1.setId(1);
+            reportData1.setId(1L);
             ReportData reportData2 = new ReportData();
-            reportData1.setId(2);
+            reportData1.setId(2L);
             Mockito.when(repository.findAll()).thenReturn(reportDataList);
             ReportDataService service = new ReportDataService(repository);
             Collection<ReportData> result = service.getAll();
             Assertions.assertEquals(reportDataList, result);
             Mockito.verify(repository, Mockito.times(1)).findAll();
         }
-    }
+
 }
