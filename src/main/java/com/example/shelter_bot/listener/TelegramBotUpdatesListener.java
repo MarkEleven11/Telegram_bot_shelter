@@ -1,9 +1,9 @@
 package com.example.shelter_bot.listener;
 
-import com.example.shelter_bot.entity.Client;
-import com.example.shelter_bot.entity.Volunteer;
+import com.example.shelter_bot.entity.*;
+import com.example.shelter_bot.enums.Menu;
 import com.example.shelter_bot.enums.PetType;
-import com.example.shelter_bot.entity.Shelter;
+import com.example.shelter_bot.enums.Status;
 import com.example.shelter_bot.service.*;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
@@ -11,7 +11,6 @@ import com.pengrad.telegrambot.model.File;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.PhotoSize;
 import com.pengrad.telegrambot.model.Update;
-import com.example.shelter_bot.entity.User;
 import com.pengrad.telegrambot.request.ForwardMessage;
 import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -20,18 +19,20 @@ import com.pengrad.telegrambot.response.SendResponse;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.stereotype.Component;
 import com.example.shelter_bot.service.StartService;
 import com.example.shelter_bot.service.SendMessageService;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.metamodel.SingularAttribute;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.io.Serializable;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Component
 public class TelegramBotUpdatesListener implements UpdatesListener {
@@ -46,6 +47,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     @Getter
     private static final HashMap<Long, Shelter> clientIdToShelter = new HashMap<>();
 
+
+    /**
+     * HashMap для сохранения статуса отправки отчёта о питомце.
+     */
+    private static final HashMap<SingularAttribute<AbstractPersistable, Serializable>, Status> reportStatusMap = new HashMap<javax.persistence.metamodel.SingularAttribute<org.springframework.data.jpa.domain.AbstractPersistable, java.io.Serializable>, com.example.shelter_bot.enums.Status>();
+    private String pathToFile;
+    private String description;
     private final UserService userService;
     private final ReportDataService reportDataService;
     private final ShelterService shelterService;
@@ -56,6 +64,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     final Pattern pattern = Pattern.compile("(\"\\D+\")\\s+(\"\\d{10,11}\")");
     boolean contactUserFlag;
     boolean contactClientFlag;
+    private StorageService storageService;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot, UserService userService,
                                       ReportDataService reportDataService, ShelterService shelterService, VolunteerService volunteerService,
@@ -73,6 +82,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         telegramBot.setUpdatesListener(this);
     }
 
+    /**
+     * Метод предназначенный для switch-case,
+     * который принимает текст сообщения пользователя и сравнивает со значениями enum класса ButtonCommand
+     */
+    public static Menu parse(String buttonText) {
+        Menu[] values = Menu.values();
+        for (Menu text : values) {
+            if (text.getText().equals(buttonText)) {
+                return text;
+            }
+        }
+        return Menu.BACK;
+    }
 
     /**
      * Метод первичной обработки поступивших в бот апдейтов.
@@ -93,56 +115,52 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод обрабатывает поступившие сообщения.
      *
      * @param update сообщение, поступившее в бот.
+     * @return
      */
-    private void handleUpdate(Update update) {
+    private ArrayList<String> handleUpdate(Update update) {
         Message message = update.message();
         Long id = message.chat().id();
         String text = message.text();
         SendResponse sendResponse;
         logger.info("Processing update: {}", update);
+        System.out.println(Menu.GREETINGS.getText());
+        if (text != null && update.message().photo() == null) {
             try {
-                switch (text) {
-                    case "/start" -> this.telegramBot.execute(startService.start(id));
-                    case "/catShelter" -> {
+                switch (parse(text)) {
+                    case START -> this.telegramBot.execute(startService.start(id));
+                    case CHOOSE_CAT -> {
                         clientIdToShelter.put(id, shelterService.chooseShelter(PetType.CAT));
                         telegramBot.execute(shelterService.giveMenu(id));
                     }
-                    case "/dogShelter" -> {
+                    case CHOOSE_DOG -> {
                         clientIdToShelter.put(id, shelterService.chooseShelter(PetType.DOG));
                         telegramBot.execute(shelterService.giveMenu(id));
                     }
-                    case "/stage" -> {
+                    case CHOOSE_ACTION -> {
                         telegramBot.execute(shelterService.start(clientIdToShelter.get(id), id));
                     }
-
-                    case "/about" -> sendResponse = clientIdToShelter.containsKey(id) ? telegramBot
+                    case TAKE_ANIMAL_HOME -> sendResponse = clientIdToShelter.containsKey(id) ? telegramBot
                             .execute(shelterService.aboutShelter(clientIdToShelter.get(id), id)) :
                             telegramBot.execute(sendMessageService.shelterNotChoose(id));
-                    case "/info" -> sendResponse = clientIdToShelter.containsKey(id) ?
+                    case BASIC_INFO -> sendResponse = clientIdToShelter.containsKey(id) ?
                             telegramBot.execute(shelterService.infoShelter(clientIdToShelter.get(id), id)) :
                             telegramBot.execute(sendMessageService.shelterNotChoose(id));
-
-                    case "/guard" -> sendResponse = clientIdToShelter.containsKey(id) ?
+                    case GUARD_INFO -> sendResponse = clientIdToShelter.containsKey(id) ?
                             telegramBot.execute(shelterService.getGuardContact(clientIdToShelter.get(id), id)) :
                             telegramBot.execute(sendMessageService.shelterNotChoose(id));
-                    case "/contact" -> {
-                        if (clientIdToShelter.containsKey(id)) {
-                            telegramBot.execute(sendMessageService.send(id,
-                                    "Введите контактные данные в формате: \"Фамилия Имя Отчество\" " +
-                                            "\"номер телефона\".\nК примеру: \"Иванов Иван Иванович\" \"89990001122\""));
-                            contactUserFlag = true;
-                        } else {
-                            contactUserFlag = false;
-                        }
-                    }
+                    case SEND_ANIMAL_REPORT -> {
+                        telegramBot.execute(sendMessageService.send(id,
+                                "Введите информацию о питомце: \"кличку питомца\" " +
+                                        "\"фотографию питомца\"" + "\"рацион питомца\"" +
+                                        "\"описание самочувствия питомца\"" + "\"особенности поведения\"" + "\"дату отчета\""));
 
-                    case "/volunteer" -> {
+                    }
+                    case CALL_VOLUNTEER -> {
                         sendResponse = clientIdToShelter.containsKey(id) ?
                                 telegramBot.execute(volunteerService.callVolunteer(id, clientIdToShelter.get(id))) :
                                 telegramBot.execute(sendMessageService.shelterNotChoose(id));
                     }
-
-                    case "/giveDataToBot" -> {
+                    case SEND_DATA -> {
                         if (clientIdToShelter.containsKey(id)) {
                             telegramBot.execute(sendMessageService.send(id,
                                     "Отправь боту свои фамилию, имя, телефонный номер (из 11 цифр) " +
@@ -153,39 +171,46 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             contactClientFlag = false;
                         }
                     }
-
-                    default -> {
-                        Matcher matcher = pattern.matcher((CharSequence) message);
-
-                        if (contactUserFlag && matcher.find()) {
-                            User user = new User(matcher.group(1).replace("\"", ""),
-                                    matcher.group(2).replace("\"", ""), clientIdToShelter.get(id));
-                            userService.writeContact(user);
-                            telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
-                        } else if (contactClientFlag) {
-                            Client client = clientService.createClient(new Client());
-                            //clientService.createClient(client);
-                            telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
-                        } else {
-                            telegramBot.execute(sendMessageService.commandIncorrect(id));
-                        }
-                    }
-
-
+                    default -> sendResponseMessage(id, "Неизвестная команда!");
                 }
+
+                Matcher matcher = pattern.matcher((CharSequence) message);
+                if (contactUserFlag && matcher.find()) {
+                    User user = new User(matcher.group(1).replace("\"", ""),
+                            matcher.group(2).replace("\"", ""), clientIdToShelter.get(id));
+                    userService.writeContact(user);
+                    telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
+                } else if (contactClientFlag) {
+                    Client client = clientService.createClient(new Client());
+                    //clientService.createClient(client);
+                    telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
+                } else {
+                    telegramBot.execute(sendMessageService.commandIncorrect(id));
+                }
+                if (update.message().photo() != null && update.message().caption() != null) {
+                    if (clientService.getClientById(id).equals(id)) {
+                        String petName = clientService.getClientById(id).getPetSet().toString();
+                        getReport(message, petName);
+                    } else {
+                        sendResponseMessage(id, "У вас нет животного!");
+                    }
+                }
+                if (update.message().photo() != null && update.message().caption() == null) {
+                    sendResponseMessage(id, "Отчет нужно присылать с описанием!");
+                }
+
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
+        return null;
+    }
 
     /**
      * Метод отправки текстовых сообщений.
-     *
-     * @param id
-     * @param text
      */
-    public void sendResponseMessage(long id, String text) {
-        SendMessage sendMessage = new SendMessage(id, text);
+    public void sendResponseMessage(Long chatId, String text) {
+        SendMessage sendMessage = new SendMessage(chatId, text);
         SendResponse sendResponse = telegramBot.execute(sendMessage);
         if (!sendResponse.isOk()) {
             logger.error("Error during sending message: {}", sendResponse.description());
@@ -195,15 +220,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Метод пересылки сообщения волонтеру
      *
-     * @param chatId
-     * @param messageId
      */
     public void sendMessageToVolunteer(long chatId, int messageId) {
         Volunteer volunteer = new Volunteer();
         ForwardMessage forwardMessage = new ForwardMessage(volunteer.getId(), chatId, messageId);
         SendResponse sendResponse = telegramBot.execute(forwardMessage);
         if (!sendResponse.isOk()) {
-            logger.error("Error during sending message: {}", sendResponse.description());
+            logger.error("Ошибка в процессе отправки: {}", sendResponse.description());
         }
     }
 
@@ -236,29 +259,28 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     chatId, petName, fileContent, ration,
                     health, behaviour, lastMessage);
             sendMessageToVolunteer(chatId, message.messageId());
-            sendResponseMessage(chatId, "Your report has been accepted!");
+            sendResponseMessage(chatId, "Ваш отчет принят!");
         } catch (IOException e) {
-            System.out.println("Photo upload error!");
+            System.out.println("Ошибка загрузки фото");
         }
 
     }
 
     /**
      * Метод для разбивки описания под фотографии для добавления полученного текста в отчет
-     *
-     * @param caption
      * @return
      */
-    private List<String> splitCaption(String caption) {
+        private List<String> splitCaption(String caption) {
         if (caption == null || caption.isBlank()) {
-            throw new IllegalArgumentException("The description under the photo should not be empty. Resend the report!");
+            throw new IllegalArgumentException("Описание фото не должно быть пустым");
         }
         Matcher matcher = pattern.matcher(caption);
         if (matcher.find()) {
             return new ArrayList<>(List.of(matcher.group(3), matcher.group(7), matcher.group(11)));
         } else {
-            throw new IllegalArgumentException("Check the correct of the entered data and send the report again.");
+            throw new IllegalArgumentException("Проверьте правильность заполнения и повторите отправку");
         }
     }
 
+    }
 }
