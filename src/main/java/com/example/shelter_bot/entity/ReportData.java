@@ -16,10 +16,12 @@ public class ReportData {
     @Id
     private Long id;
     private Long chatId;
+    @Column(name = "pet_name")
     private String name;
     private String health;
     private String ration;
     private String behaviour;
+    @Column(name = "message_date")
     private Date lastMessage;
     @Lob
     private byte[] data;
