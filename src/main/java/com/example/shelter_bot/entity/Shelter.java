@@ -30,6 +30,19 @@ public class Shelter {
     @OneToMany(mappedBy = "shelter")
     private Set<User> ownerSet = new HashSet<>();
 
+    public Shelter(Long id, String name, String address, String schedule, String about, String guard, String locationMap, PetType petType) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.schedule = schedule;
+        this.about = about;
+        this.guard = guard;
+        this.locationMap = locationMap;
+        this.petType = petType;
+    }
+
+    public Shelter(){}
+
     public Long getId() {
         return id;
     }

@@ -1,0 +1,12 @@
+{
+  "message": {
+    "chat": {
+      "id": 123
+    },
+    "message_id": 1,
+    "contact": {
+      "phone_number": "Иван",
+      "first_name":"+7-800-555-35-35"
+    }
+  }
+}

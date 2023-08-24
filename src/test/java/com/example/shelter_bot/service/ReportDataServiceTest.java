@@ -74,7 +74,6 @@ public class ReportDataServiceTest {
             List<ReportData> reportDataList =  new ArrayList<>();
             ReportData reportData1 = new ReportData();
             reportData1.setId(1L);
-            ReportData reportData2 = new ReportData();
             reportData1.setId(2L);
             Mockito.when(repository.findAll()).thenReturn(reportDataList);
             ReportDataService service = new ReportDataService(repository);

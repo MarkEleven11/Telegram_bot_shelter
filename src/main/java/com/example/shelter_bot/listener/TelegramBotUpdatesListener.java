@@ -281,6 +281,4 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             throw new IllegalArgumentException("Проверьте правильность заполнения и повторите отправку");
         }
     }
-
-    }
 }

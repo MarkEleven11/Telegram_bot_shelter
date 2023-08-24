@@ -4,6 +4,7 @@ import com.example.shelter_bot.entity.ReportData;
 import com.example.shelter_bot.service.ReportDataService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest
 public class ReportDataControllerTest {
         @Autowired
         private MockMvc mockMvc;
@@ -48,9 +50,4 @@ public class ReportDataControllerTest {
             mockMvc.perform(MockMvcRequestBuilders.get("/photo-reports/getAll"))
                     .andExpect(status().isOk());
         }
-
-        @Test
-        void downloadPhotoFromDB() throws Exception {
-        }
-
 }

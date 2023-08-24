@@ -26,4 +26,11 @@ public class Client {
     private String address;
     @OneToMany(mappedBy = "client")
     private Set<Pet> petSet = new HashSet<>();
+
+    public Client(Long id, String name, String phoneNumber, String address) {
+        this.id = id;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+    }
 }

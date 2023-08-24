@@ -23,7 +23,12 @@ public class UserController {
         this.userService = userService;
     }
 
-
+    @Operation(summary = "Добавить данные пользователя", tags = "User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Информация о пользователе добавлена",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = User.class))})
+    })
     @PostMapping("/add")
     public ResponseEntity<User> addUser(@RequestBody User user) {
         if (user.getName() == null || user.getPhoneNumber() == null ||

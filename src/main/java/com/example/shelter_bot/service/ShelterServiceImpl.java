@@ -1,6 +1,7 @@
 package com.example.shelter_bot.service;
 
 import com.example.shelter_bot.entity.Shelter;
+import com.example.shelter_bot.enums.Menu;
 import com.example.shelter_bot.enums.PetType;
 import com.example.shelter_bot.repository.ShelterRepository;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -51,13 +52,13 @@ public class ShelterServiceImpl implements ShelterService {
      * Стартовый метод для работы с приютом.
      *
      * @param shelter приют.
-     * @param fromId идентификатор пользователя.
+     * @param chatId идентификатор пользователя.
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage start(Shelter shelter, Long fromId) {
+    public SendMessage start(Shelter shelter, Long chatId) {
         String mess = String.format(" * Тип приюта: %s * \nВыберите действие:", shelter.getPetType().toString());
-        SendMessage sendMessage = new SendMessage(fromId, mess);
+        SendMessage sendMessage = new SendMessage(chatId, mess);
         sendMessage.parseMode(ParseMode.Markdown)
                 .replyMarkup(getKeyboard());
         return sendMessage;
@@ -67,26 +68,26 @@ public class ShelterServiceImpl implements ShelterService {
      * Вывод информации о приюте.
      *
      * @param shelter приют.
-     * @param fromId идентификатор пользователя.
+     * @param chatId идентификатор пользователя.
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage aboutShelter(Shelter shelter, Long fromId) {
-        return new SendMessage(fromId, shelter.getAbout()).replyMarkup(getKeyboard());
+    public SendMessage aboutShelter(Shelter shelter, Long chatId) {
+        return new SendMessage(chatId, shelter.getAbout()).replyMarkup(getKeyboard());
     }
 
     /**
      * Получение контактных данных охраны.
      *
      * @param shelter приют.
-     * @param fromId идентификатор пользователя.
+     * @param chatId идентификатор пользователя.
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage getGuardContact(Shelter shelter, Long fromId) {
+    public SendMessage getGuardContact(Shelter shelter, Long chatId) {
         Optional<String> guardContact = Optional.ofNullable(shelter.getGuard());
         String mess = guardContact.orElse("Нет поста охраны.");
-        return new SendMessage(fromId, mess).replyMarkup(getKeyboard());
+        return new SendMessage(chatId, mess).replyMarkup(getKeyboard());
     }
 
     /**
@@ -126,14 +127,14 @@ public class ShelterServiceImpl implements ShelterService {
      */
     private Keyboard getKeyboard() {
         return new InlineKeyboardMarkup().addRow(
-                new InlineKeyboardButton("Рассказать о приюте").callbackData("/about"),
+                new InlineKeyboardButton("Рассказать о приюте").callbackData(Menu.BASIC_INFO.getText()),
                 new InlineKeyboardButton("Как к нам попасть").callbackData("/info")
         ).addRow(
                 new InlineKeyboardButton("Контактные данные охраны").callbackData("/guard"),
                 new InlineKeyboardButton("Техника безопасности").url("https://clck.ru/34Nb7f").callbackData("/safety")
         ).addRow(
                 new InlineKeyboardButton("Свяжитесь со мной").callbackData("/contact"),
-                new InlineKeyboardButton("Позвать волонтёра").callbackData("/volunteer")
+                new InlineKeyboardButton("Позвать волонтёра").callbackData(Menu.CALL_VOLUNTEER.getText())
         );
     }
 

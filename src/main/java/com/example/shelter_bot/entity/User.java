@@ -32,6 +32,12 @@ public class User {
         this.userChatId = userChatId;
     }
 
+    public User(Long id, String name, String phoneNumber, Shelter shelter) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.shelter = shelter;
+    }
+
     public User(String name, String phoneNumber, Shelter shelter) {
         this.name = name;
         this.phoneNumber = phoneNumber;

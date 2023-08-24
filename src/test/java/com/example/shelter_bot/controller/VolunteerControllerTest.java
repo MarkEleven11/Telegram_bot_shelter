@@ -1,13 +1,12 @@
 package com.example.shelter_bot.controller;
 
-import com.example.shelter_bot.entity.Pet;
-import com.example.shelter_bot.enums.PetType;
-import com.example.shelter_bot.repository.PetRepository;
+import com.example.shelter_bot.entity.Volunteer;
+import com.example.shelter_bot.repository.VolunteerRepository;
 import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -21,37 +20,35 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-@WebMvcTest(PetController.class)
-public class PetControllerTest {
+@WebMvcTest
+public class VolunteerControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Mock
-    private PetRepository petRepository;
+    @MockBean
+    private VolunteerRepository volunteerRepository;
 
     @Test
-    void getAllPetsTest() throws Exception {
+    void getAllVolunteersTest() throws Exception {
 
-        long firstId = 1L;
-        long secondId = 2L;
-        long thirdId = 3L;
+        Long firstId = 1L;
+        Long secondId = 2L;
+        Long thirdId = 3L;
 
-        Pet firstPet = new Pet();
-        firstPet.setId(firstId);
+        Volunteer testVolunteer1 = new Volunteer();
+        testVolunteer1.setId(firstId);
 
-        Pet secondPet = new Pet();
-        secondPet.setId(secondId);
+        Volunteer testVolunteer2 = new Volunteer();
+        testVolunteer2.setId(secondId);
 
-        Pet thirdPet = new Pet();
-        thirdPet.setId(thirdId);
+        Volunteer testVolunteer3 = new Volunteer();
+        testVolunteer3.setId(thirdId);
 
-        when(petRepository.findAll())
-                .thenReturn(List.of(firstPet, secondPet, thirdPet));
+        when(volunteerRepository.findAll())
+                .thenReturn(List.of(testVolunteer1, testVolunteer2, testVolunteer3));
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/pets"))
+                        .get("/volunteers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].id").value(firstId))
@@ -60,58 +57,58 @@ public class PetControllerTest {
     }
 
     @Test
-    void addPetTest() throws Exception {
+    void addVolunteerTest() throws Exception {
 
         Long id = 1L;
-        PetType petType = PetType.CAT;
-        String petName = "Cat";
+        String volunteerName = "Окская Оксана";
+        Long chatId = 45965L;
         Boolean availability = true;
 
-        Pet pet = new Pet();
-        pet.setId(id);
-        pet.setPetType(petType);
-        pet.setPetName(petName);
-        pet.setAvailability(availability);
+        Volunteer volunteer = new Volunteer();
+        volunteer.setId(id);
+        volunteer.setVolunteerName(volunteerName);
+        volunteer.setChatId(chatId);
+        volunteer.setAvailable(availability);
 
         JSONObject requestObject = new JSONObject();
         requestObject.put("id", id);
-        requestObject.put("petType", petType.name());
-        requestObject.put("petName", petName);
+        requestObject.put("volunteerName", volunteerName);
+        requestObject.put("chatId", chatId);
         requestObject.put("availability", availability);
 
-        when(petRepository.save(eq(pet)))
-                .thenReturn(pet);
+        when(volunteerRepository.save(eq(volunteer)))
+                .thenReturn(volunteer);
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/pets")
+                        .post("/volunteers")
                         .content(requestObject.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.petType").value(petType.name()))
-                .andExpect(jsonPath("$.petName").value(petName))
+                .andExpect(jsonPath("$.volunteerName").value(volunteerName))
+                .andExpect(jsonPath("$.chatId").value(chatId))
                 .andExpect(jsonPath("$.availability").value(availability));
     }
 
     @Test
-    void removePetTest() throws Exception {
+    void removeVolunteerTest() throws Exception {
 
         Long correctId = 123L;
         Long wrongId = 321L;
-        Pet pet = new Pet();
-        pet.setId(correctId);
+        Volunteer volunteer = new Volunteer();
+        volunteer.setId(correctId);
 
-        when(petRepository.findById(eq(correctId))).thenReturn(Optional.of(pet));
-        when(petRepository.findById(eq(wrongId))).thenReturn(Optional.empty());
+        when(volunteerRepository.findById(eq(correctId))).thenReturn(Optional.of(volunteer));
+        when(volunteerRepository.findById(eq(wrongId))).thenReturn(Optional.empty());
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .delete("/pets/{id}", correctId))
+                        .delete("/volunteers/{id}", correctId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(correctId));
 
         mockMvc.perform(MockMvcRequestBuilders
-                        .delete("/pets/{id}", wrongId))
+                        .delete("/volunteers/{id}", wrongId))
                 .andExpect(status().isNotFound());
     }
 }
