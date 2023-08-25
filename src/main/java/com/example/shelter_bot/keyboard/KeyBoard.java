@@ -2,6 +2,7 @@ package com.example.shelter_bot.keyboard;
 
 import com.example.shelter_bot.enums.Menu;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
@@ -40,7 +41,25 @@ public class KeyBoard {
     //Метод для отображения меню о приюте
     //аналогично прошлому методу: выбор между коммандами меню с информацией
     //public void shelterInfoMenu
+    public void shelterInfoMenu(long chatId) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
+                Menu.BASIC_INFO.getText(),
+                Menu.ADDRESS_INFO.getText());
+        replyKeyboardMarkup.addRow(new KeyboardButton(Menu.CALL_VOLUNTEER.getText()),
+                new KeyboardButton(Menu.SEND_DATA.getText()).requestContact(true));
+        replyKeyboardMarkup.addRow(Menu.START.getText());
+        sendResponseMenu(chatId, replyKeyboardMarkup, "Вы можете получить информацию о приюте в меню.");
+    }
 
+    //метод для инфо как приютить питомца
+    public void shelterInfoHowAdoptPetMenu(long chatId) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(Menu.RECOMMENDATIONS_LIST.getText(),
+                Menu.DOCUMENTS_LIST.getText());
+        replyKeyboardMarkup.addRow(new KeyboardButton(Menu.CALL_VOLUNTEER.getText()),
+                new KeyboardButton(Menu.SEND_DATA.getText()).requestContact(true));
+        replyKeyboardMarkup.addRow(Menu.START.getText());
+        sendResponseMenu(chatId, replyKeyboardMarkup, "Информация о том, как взять животное из приюта");
+    }
 
     //Метод для укорочения отправки ответа в меню
     public void sendResponseMenu(long chatId, ReplyKeyboardMarkup replyKeyboardMarkup, String text) {

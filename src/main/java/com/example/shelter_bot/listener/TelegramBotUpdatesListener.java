@@ -4,6 +4,7 @@ import com.example.shelter_bot.entity.*;
 import com.example.shelter_bot.enums.Menu;
 import com.example.shelter_bot.enums.PetType;
 import com.example.shelter_bot.enums.Status;
+import com.example.shelter_bot.keyboard.KeyBoard;
 import com.example.shelter_bot.service.*;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
@@ -19,6 +20,7 @@ import com.pengrad.telegrambot.response.SendResponse;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.stereotype.Component;
 import com.example.shelter_bot.service.StartService;
@@ -65,6 +67,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     boolean contactUserFlag;
     boolean contactClientFlag;
     private StorageService storageService;
+    private KeyBoard keyBoard;
+    private ContextService contextService;
+    @Value("${volunteer-chat-id}")
+    private Long volunteerChatId;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot, UserService userService,
                                       ReportDataService reportDataService, ShelterService shelterService, VolunteerService volunteerService,
@@ -139,12 +145,73 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     case CHOOSE_ACTION -> {
                         telegramBot.execute(shelterService.start(clientIdToShelter.get(id), id));
                     }
-                    case TAKE_ANIMAL_HOME -> sendResponse = clientIdToShelter.containsKey(id) ? telegramBot
-                            .execute(shelterService.aboutShelter(clientIdToShelter.get(id), id)) :
-                            telegramBot.execute(sendMessageService.shelterNotChoose(id));
-                    case BASIC_INFO -> sendResponse = clientIdToShelter.containsKey(id) ?
-                            telegramBot.execute(shelterService.infoShelter(clientIdToShelter.get(id), id)) :
-                            telegramBot.execute(sendMessageService.shelterNotChoose(id));
+                    case TAKE_ANIMAL_HOME -> keyBoard.shelterInfoHowAdoptPetMenu(id);
+                    case BASIC_INFO -> {
+                        if (contextService.getByChatId(id).isPresent()) {
+                            Context context = contextService.getByChatId(id).get();
+                            if (context.getPetType().equals(PetType.CAT)) {
+                                sendResponseMessage(id, """
+                                        Информация о кошачем приюте - ...
+                                        Рекомендации о технике безопасности на территории кошачего приюта - ...
+                                        Контактные данные охраны - ...
+                                        """);
+                            } else if (context.getPetType().equals(PetType.DOG)) {
+                                sendResponseMessage(id, """
+                                        Информация о собачем приюте - ...
+                                        Рекомендации о технике безопасности на территории собачего приюта - ...
+                                        Контактные данные охраны - ...
+                                        """);
+                            }
+                        }
+                    }
+                    case ADDRESS_INFO -> {
+                        if (contextService.getByChatId(id).isPresent()) {
+                            Context context = contextService.getByChatId(id).get();
+                            if (context.getPetType().equals(PetType.CAT)) {
+                                sendResponseMessage(id, """
+                                        Адрес кошачего приюта - ...
+                                        График работы - ...
+                                        """);
+                            } else if (context.getPetType().equals(PetType.DOG)) {
+                                sendResponseMessage(id, """
+                                        Адрес собачего приюта - ...
+                                        График работы - ...
+                                        """);
+                            }
+                        }
+                    }
+                    case RECOMMENDATIONS_LIST -> {
+                        if (contextService.getByChatId(id).isPresent()) {
+                            Context context = contextService.getByChatId(id).get();
+                            if (context.getPetType().equals(PetType.CAT)) {
+                                sendResponseMessage(id, """
+                                        Правила знакомства с животным - ...
+                                        Список рекомендаций - ...
+                                        Список причин отказа в выдаче животного - ...
+                                        """);
+                            } else if (context.getPetType().equals(PetType.DOG)) {
+                                sendResponseMessage(id, """
+                                        Правила знакомства с животным - ...
+                                        Список рекомендаций - ...
+                                        Советы кинолога по первичному общению с собакой - ...
+                                        Рекомендации по проверенным кинологам для дальнейшего обращения к ним
+                                        Список причин отказа в выдаче животного - ...
+                                        """);
+                            }
+                        }
+                    }
+                    case DOCUMENTS_LIST -> {
+                        if (contextService.getByChatId(id).isPresent()) {
+                            Context context = contextService.getByChatId(id).get();
+                            if (context.getPetType().equals(PetType.CAT)) {
+                                sendResponseMessage(id,
+                                        "Для взятия кота из приюта необходимы такие документы: ...");
+                            } else if (context.getPetType().equals(PetType.DOG)) {
+                                sendResponseMessage(id,
+                                        "Для взятия собаки из приюта необходимы такие документы: ...");
+                            }
+                        }
+                    }
                     case GUARD_INFO -> sendResponse = clientIdToShelter.containsKey(id) ?
                             telegramBot.execute(shelterService.getGuardContact(clientIdToShelter.get(id), id)) :
                             telegramBot.execute(sendMessageService.shelterNotChoose(id));
@@ -156,9 +223,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
                     }
                     case CALL_VOLUNTEER -> {
-                        sendResponse = clientIdToShelter.containsKey(id) ?
-                                telegramBot.execute(volunteerService.callVolunteer(id, clientIdToShelter.get(id))) :
-                                telegramBot.execute(sendMessageService.shelterNotChoose(id));
+                        sendResponseMessage(id, "Мы передали ваше сообщение волонтеру. " +
+                                "Если у вас закрытый профиль отправьте контактные данные," +
+                                "с помощью кнопки в меню - Отправить контактные данные");
+                        sendMessageToVolunteer(id, message.messageId());
                     }
                     case SEND_DATA -> {
                         if (clientIdToShelter.containsKey(id)) {
@@ -182,28 +250,62 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
                 } else if (contactClientFlag) {
                     Client client = clientService.createClient(new Client());
-                    //clientService.createClient(client);
+                    clientService.createClient(client);
                     telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
                 } else {
                     telegramBot.execute(sendMessageService.commandIncorrect(id));
                 }
                 if (update.message().photo() != null && update.message().caption() != null) {
-                    if (clientService.getClientById(id).equals(id)) {
-                        String petName = clientService.getClientById(id).getPetSet().toString();
-                        getReport(message, petName);
+                    Calendar calendar = new GregorianCalendar();
+                    long compareTime = calendar.get(Calendar.DAY_OF_MONTH);
+                    long daysOfReports = reportDataService.getAll().stream()
+                            .filter(s -> s.getChatId() == id)
+                            .count();
+                    Date lastMessageDate = reportDataService.getAll().stream()
+                            .filter(s -> s.getChatId() == id)
+                            .map(ReportData::getLastMessage)
+                            .max(Date::compareTo)
+                            .orElse(null);
+                    long numberOfDay = 0L;
+                    if (lastMessageDate != null) {
+                        numberOfDay = lastMessageDate.getDate();
                     } else {
-                        sendResponseMessage(id, "У вас нет животного!");
+                        numberOfDay = message.date();
                     }
-                }
-                if (update.message().photo() != null && update.message().caption() == null) {
+                    if (daysOfReports < 30) {
+                        if (compareTime != numberOfDay) {
+                            Context context = contextService.getByChatId(id).get();
+                            if (context.getPetType().equals(PetType.CAT)
+                                    && context.getClient().getPetSet() != null) {
+                                String petName = context.getClient().getPetSet().toString();
+                                getReport(message, petName);
+                                daysOfReports++;
+                            } else if (context.getPetType().equals(PetType.DOG)
+                                    && context.getClient().getPetSet() != null) {
+                                String petName = context.getClient().getPetSet().toString();
+                                getReport(message, petName);
+                                daysOfReports++;
+                            } else {
+                                sendResponseMessage(id, "У вас нет животного!");
+                            }
+                        } else {
+                            sendResponseMessage(id, "Вы уже отправляли сегодня отчет");
+                        }
+
+                    }
+                    if (daysOfReports == 30) {
+                        sendResponseMessage(id, "Вы прошли испытательный срок!");
+                        sendResponseMessage(volunteerChatId, "Владелец животного с chatId " + id
+                                + " прошел испытательный срок!");
+                    }
+
+                } else if (update.message().photo() != null && update.message().caption() == null) {
                     sendResponseMessage(id, "Отчет нужно присылать с описанием!");
                 }
-
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-        }
-        return null;
+        }return null;
     }
 
     /**

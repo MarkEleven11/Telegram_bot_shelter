@@ -9,8 +9,11 @@ public enum Menu {
     CHOOSE_DOG("Хочу взять из приюта собаку"),
     CHOOSE_ACTION("Выберите действие: "),
     BASIC_INFO("Узнать информацию о приюте"),
+    ADDRESS_INFO("Узнать адрес приюта"),
     GUARD_INFO("Узнать о правилах посещения"),
     TAKE_ANIMAL_HOME("Как взять животное из приюта"),
+    RECOMMENDATIONS_LIST("Список рекомендаций и советов"),
+    DOCUMENTS_LIST("Список необходимых документов"),
     SEND_ANIMAL_REPORT("Прислать отчет о питомце"),
     CALL_VOLUNTEER("Позвать волонтера"),
     SEND_DATA("Отправить контактные данные для связи");
