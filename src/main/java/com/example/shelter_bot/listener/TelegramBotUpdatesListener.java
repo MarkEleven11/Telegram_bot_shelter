@@ -142,9 +142,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         clientIdToShelter.put(id, shelterService.chooseShelter(PetType.DOG));
                         telegramBot.execute(shelterService.giveMenu(id));
                     }
-                    case CHOOSE_ACTION -> {
-                        telegramBot.execute(shelterService.start(clientIdToShelter.get(id), id));
-                    }
                     case TAKE_ANIMAL_HOME -> keyBoard.shelterInfoHowAdoptPetMenu(id);
                     case BASIC_INFO -> {
                         if (contextService.getByChatId(id).isPresent()) {
@@ -241,7 +238,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     }
                     default -> sendResponseMessage(id, "Неизвестная команда!");
                 }
-
                 Matcher matcher = pattern.matcher((CharSequence) message);
                 if (contactUserFlag && matcher.find()) {
                     User user = new User(matcher.group(1).replace("\"", ""),
@@ -315,7 +311,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         SendMessage sendMessage = new SendMessage(chatId, text);
         SendResponse sendResponse = telegramBot.execute(sendMessage);
         if (!sendResponse.isOk()) {
-            logger.error("Error during sending message: {}", sendResponse.description());
+            logger.error("Ошибка в процессе отправки: {}", sendResponse.description());
         }
     }
 
@@ -334,8 +330,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     /**
      * Метод получения отчета и отправки его волонтеру
-     *
-     * @param message
      */
     public void getReport(Message message, String petName) {
         PhotoSize photo = message.photo()[0];

@@ -4,7 +4,6 @@ import com.example.shelter_bot.entity.Context;
 import com.example.shelter_bot.repository.ContextRepository;
 import org.jvnet.hk2.annotations.Service;
 
-import java.util.Collection;
 import java.util.Optional;
 
 @Service
@@ -17,10 +16,6 @@ public class ContextService {
     public Context saveContext(Context context) {
         return contextRepository.save(context);
     }
-    public Collection<Context> getAll() {
-        return contextRepository.findAll();
-    }
-
     public Optional<Context> getByChatId(Long chatId) {
 
         return contextRepository.findByChatId(chatId);

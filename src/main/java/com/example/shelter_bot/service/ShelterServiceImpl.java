@@ -39,13 +39,13 @@ public class ShelterServiceImpl implements ShelterService {
     /**
      * Метод вывода меню для формирования первоначального запроса пользователя.
      *
-     * @param fromId идентификатор пользователя.
+     * @param chatId идентификатор пользователя.
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage giveMenu(Long fromId) {
+    public SendMessage giveMenu(Long chatId) {
         String menu = "Выберите пункт меню:";
-        return new SendMessage(fromId, menu).replyMarkup(requestKeyboardHandler());
+        return new SendMessage(chatId, menu).replyMarkup(requestKeyboardHandler());
     }
 
     /**
@@ -94,15 +94,15 @@ public class ShelterServiceImpl implements ShelterService {
      * Вывод общей информации о приюте: адрес, расписание работы, схема проезда.
      *
      * @param shelter приют.
-     * @param fromId идентификатор пользователя.
+     * @param chatId идентификатор пользователя.
      * @return {@link SendMessage}
      */
     @Override
-    public SendMessage infoShelter(Shelter shelter, Long fromId) {
+    public SendMessage infoShelter(Shelter shelter, Long chatId) {
         String info = String.format("<strong>Вы можете найти нас по адресу:</strong>" +
                         " \n%s\n<strong>Наш график работы:</strong>\n%s\n<strong>Схема проезда: </strong>%s",
                 shelter.getAddress(), shelter.getSchedule(), shelter.getLocationMap());
-        return new SendMessage(fromId, info).parseMode(ParseMode.HTML).replyMarkup(getKeyboard());
+        return new SendMessage(chatId, info).parseMode(ParseMode.HTML).replyMarkup(getKeyboard());
     }
 
     /**
@@ -112,11 +112,11 @@ public class ShelterServiceImpl implements ShelterService {
      */
     private Keyboard requestKeyboardHandler() {
         return new InlineKeyboardMarkup().addRow(
-                new InlineKeyboardButton("Узнать информацию о приюте").callbackData("/stage1"),
-                new InlineKeyboardButton("Как взять животное из приюта").callbackData("/stage2")
+                new InlineKeyboardButton("Узнать информацию о приюте").callbackData(String.valueOf(Menu.BASIC_INFO)),
+                new InlineKeyboardButton("Как взять животное из приюта").callbackData(String.valueOf(Menu.TAKE_ANIMAL_HOME))
         ).addRow(
-                new InlineKeyboardButton("Прислать отчёт о питомце").callbackData("/stage3"),
-                new InlineKeyboardButton("Позвать волонтёра").callbackData("/volunteer")
+                new InlineKeyboardButton("Прислать отчёт о питомце").callbackData(String.valueOf(Menu.SEND_ANIMAL_REPORT)),
+                new InlineKeyboardButton("Позвать волонтёра").callbackData(String.valueOf(Menu.CALL_VOLUNTEER))
         );
     }
 
