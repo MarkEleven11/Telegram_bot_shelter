@@ -1,5 +1,6 @@
 package com.example.shelter_bot.service;
 
+import com.example.shelter_bot.enums.Menu;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ public class SendMessageServiceImpl implements SendMessageService {
     public SendMessage shelterNotChoose(Long id) {
         return new SendMessage(id, "Приют не выбран.")
                 .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("Выбор приюта")
-                        .callbackData("/start"))
+                        .callbackData(String.valueOf(Menu.START)))
         );
     }
 
