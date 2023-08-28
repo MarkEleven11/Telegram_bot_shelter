@@ -107,7 +107,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      *
      * @param update сообщение, поступившее в бот.
      */
-    private ArrayList<String> handleUpdate(Update update) {
+    private void handleUpdate(Update update) {
         Message message = update.message();
         Long id = message.chat().id();
         String text = message.text();
@@ -296,7 +296,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 logger.error(e.getMessage(), e);
             }
         }
-        return null;
     }
 
     /**
