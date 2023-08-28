@@ -8,7 +8,6 @@ import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 @Service
 public class VolunteerService {

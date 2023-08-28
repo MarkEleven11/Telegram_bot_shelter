@@ -3,7 +3,6 @@ package com.example.shelter_bot.listener;
 import com.example.shelter_bot.entity.*;
 import com.example.shelter_bot.enums.Menu;
 import com.example.shelter_bot.enums.PetType;
-import com.example.shelter_bot.enums.Status;
 import com.example.shelter_bot.keyboard.KeyBoard;
 import com.example.shelter_bot.service.*;
 import com.pengrad.telegrambot.TelegramBot;
@@ -21,20 +20,16 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.stereotype.Component;
-import com.example.shelter_bot.service.StartService;
 import com.example.shelter_bot.service.SendMessageService;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.metamodel.SingularAttribute;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+import static com.example.shelter_bot.enums.PetType.CAT;
 
 @Component
 public class TelegramBotUpdatesListener implements UpdatesListener {
@@ -49,37 +44,27 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     @Getter
     private static final HashMap<Long, Shelter> clientIdToShelter = new HashMap<>();
 
-
-    /**
-     * HashMap для сохранения статуса отправки отчёта о питомце.
-     */
-    private static final HashMap<SingularAttribute<AbstractPersistable, Serializable>, Status> reportStatusMap = new HashMap<javax.persistence.metamodel.SingularAttribute<org.springframework.data.jpa.domain.AbstractPersistable, java.io.Serializable>, com.example.shelter_bot.enums.Status>();
-    private String pathToFile;
-    private String description;
     private final UserService userService;
     private final ReportDataService reportDataService;
     private final ShelterService shelterService;
-    private final VolunteerService volunteerService;
     private final ClientService clientService;
-    private final StartService startService = new StartServiceImpl();
     private final SendMessageService sendMessageService = new SendMessageServiceImpl();
     final Pattern pattern = Pattern.compile("(\"\\D+\")\\s+(\"\\d{10,11}\")");
     boolean contactUserFlag;
     boolean contactClientFlag;
-    private StorageService storageService;
-    private KeyBoard keyBoard;
-    private ContextService contextService;
+    KeyBoard keyBoard;
+    ContextService contextService;
     @Value("${volunteer-chat-id}")
     private Long volunteerChatId;
+    VolunteerService volunteerService;
 
     public TelegramBotUpdatesListener(TelegramBot telegramBot, UserService userService,
-                                      ReportDataService reportDataService, ShelterService shelterService, VolunteerService volunteerService,
+                                      ReportDataService reportDataService, ShelterService shelterService,
                                       ClientService clientService) {
         this.telegramBot = telegramBot;
         this.userService = userService;
         this.reportDataService = reportDataService;
         this.shelterService = shelterService;
-        this.volunteerService = volunteerService;
         this.clientService = clientService;
     }
 
@@ -121,32 +106,51 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод обрабатывает поступившие сообщения.
      *
      * @param update сообщение, поступившее в бот.
-     * @return
      */
     private ArrayList<String> handleUpdate(Update update) {
         Message message = update.message();
         Long id = message.chat().id();
         String text = message.text();
-        SendResponse sendResponse;
         logger.info("Processing update: {}", update);
         System.out.println(Menu.GREETINGS.getText());
         if (text != null && update.message().photo() == null) {
             try {
                 switch (parse(text)) {
-                    case START -> this.telegramBot.execute(startService.start(id));
+                    case START -> {
+                        if (contextService.getByChatId(id).isEmpty()) {
+                            sendResponseMessage(id, "Привет! Я могу показать информацию о приютах," +
+                                    "как взять животное из приюта и принять отчет о питомце");
+                            Context context = new Context();
+                            context.setChatId(id);
+                            contextService.saveContext(context);
+                        }
+                        keyBoard.pickMenu(id);
+                    }
                     case CHOOSE_CAT -> {
-                        clientIdToShelter.put(id, shelterService.chooseShelter(PetType.CAT));
+                        clientIdToShelter.put(id, shelterService.chooseShelter(CAT));
                         telegramBot.execute(shelterService.giveMenu(id));
+                        Context context = contextService.getByChatId(id).get();
+                        context.setPetType(CAT);
+                        contextService.saveContext(context);
+                        sendResponseMessage(id, "Вы выбрали кошачий приют.");
+                        keyBoard.shelterMainMenu(id);
                     }
                     case CHOOSE_DOG -> {
                         clientIdToShelter.put(id, shelterService.chooseShelter(PetType.DOG));
                         telegramBot.execute(shelterService.giveMenu(id));
+                        Context context = contextService.getByChatId(id).get();
+                        context.setPetType(PetType.DOG);
+                        contextService.saveContext(context);
+                        sendResponseMessage(id, "Вы выбрали собачий приют.");
+                        keyBoard.shelterMainMenu(id);
                     }
+                    case CHOOSE_ACTION -> keyBoard.shelterMainMenu(id);
                     case TAKE_ANIMAL_HOME -> keyBoard.shelterInfoHowAdoptPetMenu(id);
+                    case SHELTER_INFO -> keyBoard.shelterInfoMenu(id);
                     case BASIC_INFO -> {
                         if (contextService.getByChatId(id).isPresent()) {
                             Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(PetType.CAT)) {
+                            if (context.getPetType().equals(CAT)) {
                                 sendResponseMessage(id, """
                                         Информация о кошачем приюте - ...
                                         Рекомендации о технике безопасности на территории кошачего приюта - ...
@@ -164,7 +168,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     case ADDRESS_INFO -> {
                         if (contextService.getByChatId(id).isPresent()) {
                             Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(PetType.CAT)) {
+                            if (context.getPetType().equals(CAT)) {
                                 sendResponseMessage(id, """
                                         Адрес кошачего приюта - ...
                                         График работы - ...
@@ -180,7 +184,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     case RECOMMENDATIONS_LIST -> {
                         if (contextService.getByChatId(id).isPresent()) {
                             Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(PetType.CAT)) {
+                            if (context.getPetType().equals(CAT)) {
                                 sendResponseMessage(id, """
                                         Правила знакомства с животным - ...
                                         Список рекомендаций - ...
@@ -200,7 +204,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     case DOCUMENTS_LIST -> {
                         if (contextService.getByChatId(id).isPresent()) {
                             Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(PetType.CAT)) {
+                            if (context.getPetType().equals(CAT)) {
                                 sendResponseMessage(id,
                                         "Для взятия кота из приюта необходимы такие документы: ...");
                             } else if (context.getPetType().equals(PetType.DOG)) {
@@ -209,9 +213,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                             }
                         }
                     }
-                    case GUARD_INFO -> sendResponse = clientIdToShelter.containsKey(id) ?
-                            telegramBot.execute(shelterService.getGuardContact(clientIdToShelter.get(id), id)) :
-                            telegramBot.execute(sendMessageService.shelterNotChoose(id));
                     case SEND_ANIMAL_REPORT -> {
                         telegramBot.execute(sendMessageService.send(id,
                                 "Введите информацию о питомце: \"кличку питомца\" " +
@@ -220,6 +221,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
                     }
                     case CALL_VOLUNTEER -> {
+                        Context context = contextService.getByChatId(id).get();
+                        volunteerService.callVolunteer(id, shelterService.chooseShelter(context.getPetType()));
                         sendResponseMessage(id, "Мы передали ваше сообщение волонтеру. " +
                                 "Если у вас закрытый профиль отправьте контактные данные," +
                                 "с помощью кнопки в меню - Отправить контактные данные");
@@ -255,10 +258,10 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     Calendar calendar = new GregorianCalendar();
                     long compareTime = calendar.get(Calendar.DAY_OF_MONTH);
                     long daysOfReports = reportDataService.getAll().stream()
-                            .filter(s -> s.getChatId() == id)
+                            .filter(s -> Objects.equals(s.getChatId(), id))
                             .count();
                     Date lastMessageDate = reportDataService.getAll().stream()
-                            .filter(s -> s.getChatId() == id)
+                            .filter(s -> Objects.equals(s.getChatId(), id))
                             .map(ReportData::getLastMessage)
                             .max(Date::compareTo)
                             .orElse(null);
@@ -271,15 +274,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                     if (daysOfReports < 30) {
                         if (compareTime != numberOfDay) {
                             Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(PetType.CAT)
-                                    && context.getClient().getPetSet() != null) {
-                                String petName = context.getClient().getPetSet().toString();
-                                getReport(message, petName);
-                                daysOfReports++;
-                            } else if (context.getPetType().equals(PetType.DOG)
-                                    && context.getClient().getPetSet() != null) {
-                                String petName = context.getClient().getPetSet().toString();
-                                getReport(message, petName);
+                                Long petId = context.getClient().getPetId();
+                                getReport(message, petId);
                                 daysOfReports++;
                             } else {
                                 sendResponseMessage(id, "У вас нет животного!");
@@ -287,8 +283,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                         } else {
                             sendResponseMessage(id, "Вы уже отправляли сегодня отчет");
                         }
-
-                    }
                     if (daysOfReports == 30) {
                         sendResponseMessage(id, "Вы прошли испытательный срок!");
                         sendResponseMessage(volunteerChatId, "Владелец животного с chatId " + id
@@ -301,7 +295,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
-        }return null;
+        }
+        return null;
     }
 
     /**
@@ -331,7 +326,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Метод получения отчета и отправки его волонтеру
      */
-    public void getReport(Message message, String petName) {
+    public void getReport(Message message, Long petId) {
         PhotoSize photo = message.photo()[0];
         String caption = message.caption();
         Long chatId = message.chat().id();
@@ -352,7 +347,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             long date = message.date();
             Date lastMessage = new Date(date * 1000);
             reportDataService.uploadReportData(
-                    chatId, petName, fileContent, ration,
+                    chatId, String.valueOf(petId), fileContent, ration,
                     health, behaviour, lastMessage);
             sendMessageToVolunteer(chatId, message.messageId());
             sendResponseMessage(chatId, "Ваш отчет принят!");
@@ -364,7 +359,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     /**
      * Метод для разбивки описания под фотографии для добавления полученного текста в отчет
-     * @return
+     * @return полученный текст в отчет
      */
         private List<String> splitCaption(String caption) {
         if (caption == null || caption.isBlank()) {

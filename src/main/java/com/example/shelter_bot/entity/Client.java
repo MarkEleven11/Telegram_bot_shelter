@@ -5,10 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
-//
 @Entity
 @Table(name = "client")
 @Getter
@@ -24,8 +21,7 @@ public class Client {
     private String phoneNumber;
     @Column(nullable = false)
     private String address;
-    @OneToMany(mappedBy = "client")
-    private Set<Pet> petSet = new HashSet<>();
+    private long petId;
 
     public Client(Long id, String name, String phoneNumber, String address) {
         this.id = id;

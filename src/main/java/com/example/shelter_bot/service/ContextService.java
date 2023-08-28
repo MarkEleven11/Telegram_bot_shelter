@@ -2,7 +2,7 @@ package com.example.shelter_bot.service;
 
 import com.example.shelter_bot.entity.Context;
 import com.example.shelter_bot.repository.ContextRepository;
-import org.jvnet.hk2.annotations.Service;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 

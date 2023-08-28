@@ -274,7 +274,6 @@ class TelegramBotUpdatesListenerTest {
         when(reportDataService.getAll()).thenReturn(Collections.singletonList(report));
         when(context.getClient()).thenReturn(clientMock);
         when(context.getPetType()).thenReturn(PetType.CAT);
-        when(clientMock.getPetSet()).thenReturn(petMock);
         when(clientMock.getName()).thenReturn(petName);
         when(contextMock.getByChatId(chatId)).thenReturn(Optional.of(context));
 

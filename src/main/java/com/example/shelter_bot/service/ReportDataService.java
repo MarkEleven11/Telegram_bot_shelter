@@ -5,7 +5,6 @@ import com.example.shelter_bot.repository.ReportDataRepository;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 /**
@@ -36,7 +35,7 @@ public class ReportDataService {
 
     public ReportData findById(Long id) {
         return this.repository.findById(id)
-                .orElseThrow(()->new ReportDataNotFoundException());
+                .orElseThrow(ReportDataNotFoundException::new);
     }
 
     public ReportData findByChatId(Long chatId) {

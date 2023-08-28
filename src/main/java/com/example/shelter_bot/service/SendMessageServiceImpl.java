@@ -1,25 +1,10 @@
 package com.example.shelter_bot.service;
 
-import com.example.shelter_bot.enums.Menu;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import org.springframework.stereotype.Service;
 import com.pengrad.telegrambot.request.SendMessage;
 
 @Service
 public class SendMessageServiceImpl implements SendMessageService {
-    /**
-     * Вывод предупреждения при попытке совершить действие над приютом, не выбрав его.
-     *
-     * @param id идентификатор пользователя.
-     */
-    @Override
-    public SendMessage shelterNotChoose(Long id) {
-        return new SendMessage(id, "Приют не выбран.")
-                .replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("Выбор приюта")
-                        .callbackData(String.valueOf(Menu.START)))
-        );
-    }
 
     /**
      * Вывод сообщения при получении неизвестной команды.
@@ -37,7 +22,7 @@ public class SendMessageServiceImpl implements SendMessageService {
      *
      * @param id   идентификатор пользователя.
      * @param text выводимое сообщение.
-     * @return
+     * @return message
      */
     @Override
     public SendMessage send(Long id, String text) {

@@ -65,47 +65,6 @@ public class ShelterServiceImpl implements ShelterService {
     }
 
     /**
-     * Вывод информации о приюте.
-     *
-     * @param shelter приют.
-     * @param chatId идентификатор пользователя.
-     * @return {@link SendMessage}
-     */
-    @Override
-    public SendMessage aboutShelter(Shelter shelter, Long chatId) {
-        return new SendMessage(chatId, shelter.getAbout()).replyMarkup(getKeyboard());
-    }
-
-    /**
-     * Получение контактных данных охраны.
-     *
-     * @param shelter приют.
-     * @param chatId идентификатор пользователя.
-     * @return {@link SendMessage}
-     */
-    @Override
-    public SendMessage getGuardContact(Shelter shelter, Long chatId) {
-        Optional<String> guardContact = Optional.ofNullable(shelter.getGuard());
-        String mess = guardContact.orElse("Нет поста охраны.");
-        return new SendMessage(chatId, mess).replyMarkup(getKeyboard());
-    }
-
-    /**
-     * Вывод общей информации о приюте: адрес, расписание работы, схема проезда.
-     *
-     * @param shelter приют.
-     * @param chatId идентификатор пользователя.
-     * @return {@link SendMessage}
-     */
-    @Override
-    public SendMessage infoShelter(Shelter shelter, Long chatId) {
-        String info = String.format("<strong>Вы можете найти нас по адресу:</strong>" +
-                        " \n%s\n<strong>Наш график работы:</strong>\n%s\n<strong>Схема проезда: </strong>%s",
-                shelter.getAddress(), shelter.getSchedule(), shelter.getLocationMap());
-        return new SendMessage(chatId, info).parseMode(ParseMode.HTML).replyMarkup(getKeyboard());
-    }
-
-    /**
      * Метод вызова клавиатуры для формирования первоначального запроса пользователя.
      *
      * @return клавиатура.

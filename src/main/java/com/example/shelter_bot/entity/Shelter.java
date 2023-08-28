@@ -25,10 +25,9 @@ public class Shelter {
     @Column(name = "location_map")
     private String locationMap;
     private PetType petType;
-    @OneToMany(mappedBy = "shelter")
-    private Set<Volunteer> volunteerSet = new HashSet<>();
-    @OneToMany(mappedBy = "shelter")
-    private Set<User> ownerSet = new HashSet<>();
+    @Column(name = "volunteer_set")
+    private Long volunteerSet;
+    private Long userSet;
 
     public Shelter(Long id, String name, String address, String schedule, String about, String guard, String locationMap, PetType petType) {
         this.id = id;
@@ -107,19 +106,19 @@ public class Shelter {
         this.petType = petType;
     }
 
-    public Set<Volunteer> getVolunteerSet() {
+    public Long getVolunteerSet() {
         return volunteerSet;
     }
 
-    public void setVolunteerSet(Set<Volunteer> volunteerSet) {
+    public void setVolunteerSet(Long volunteerSet) {
         this.volunteerSet = volunteerSet;
     }
 
-    public Set<User> getOwnerSet() {
-        return ownerSet;
+    public Long getUserSet() {
+        return userSet;
     }
 
-    public void setOwnerSet(Set<User> ownerSet) {
-        this.ownerSet = ownerSet;
+    public void setUserSet(Long userSet) {
+        this.userSet = userSet;
     }
 }
