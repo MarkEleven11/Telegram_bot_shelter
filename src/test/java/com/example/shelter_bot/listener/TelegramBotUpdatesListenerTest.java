@@ -52,12 +52,11 @@ class TelegramBotUpdatesListenerTest {
     Client clientMock;
     @Mock
     ClientService clientService;
-    @Mock
-    Set<Pet> petMock;
+
 
     @InjectMocks
-    private TelegramBotUpdatesListener telegramBotUpdatesListener;
-
+    //private TelegramBotUpdatesListener telegramBotUpdatesListener;
+    private TelegramBotUpdateListener telegramBotUpdatesListener;
 
     @Test
     public void processingStartTest() throws URISyntaxException, IOException {
@@ -72,7 +71,7 @@ class TelegramBotUpdatesListenerTest {
                 """, SendResponse.class);
         when(telegramBot.execute(any())).thenReturn(sendResponse);
 
-        telegramBotUpdatesListener.process(Collections.singletonList(update));
+        telegramBotUpdatesListener.process((List<Update>) update);
 
         ArgumentCaptor<SendMessage> argumentCaptor = ArgumentCaptor.forClass(SendMessage.class);
         verify(telegramBot).execute(argumentCaptor.capture());

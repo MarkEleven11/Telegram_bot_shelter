@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,9 +24,9 @@ public class ClientServiceTest {
     private ClientService service;
 
     private final Long testId = 1L;
-    Client testClient1 = new Client(1L, "Иванов Иван Иваночик", "8-800-000-00-11", "адрес1");
-    Client testClient2 = new Client(2L, "Петров Петр Петрович", "8-800-000-00-22", "адрес2");
-    Client testClient3 = new Client(3L, "Васильев Василий Васильевич", "8-800-000-00-33", "адрес3");
+    Client testClient1 = new Client(1L, "Иванов Иван Иваночик", "8-800-000-00-11", "адрес1", 546515L);
+    Client testClient2 = new Client(2L, "Петров Петр Петрович", "8-800-000-00-22", "адрес2", 6546845L);
+    Client testClient3 = new Client(3L, "Васильев Василий Васильевич", "8-800-000-00-33", "адрес3", 5612646L);
 
 
 

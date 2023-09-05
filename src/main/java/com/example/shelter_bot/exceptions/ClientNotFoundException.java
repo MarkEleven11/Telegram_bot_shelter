@@ -1,8 +1,7 @@
 package com.example.shelter_bot.exceptions;
 
-public class ClientNotFoundException extends RuntimeException{
+import com.example.shelter_bot.entity.Client;
 
-    public ClientNotFoundException() {
-        super("Клиент не найден");
-    }
+public class ClientNotFoundException extends RuntimeException{
+    public ClientNotFoundException() {super("Клиент не найден");}
 }

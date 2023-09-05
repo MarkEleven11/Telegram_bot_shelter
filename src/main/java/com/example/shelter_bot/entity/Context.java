@@ -1,13 +1,11 @@
 package com.example.shelter_bot.entity;
 
 import com.example.shelter_bot.enums.PetType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 @Entity
 @Data
@@ -51,7 +49,7 @@ public class Context {
         return client;
     }
 
-    public void setClient(Client client) {
+    public void setClient(Client clientId) {
         this.client = client;
     }
 }

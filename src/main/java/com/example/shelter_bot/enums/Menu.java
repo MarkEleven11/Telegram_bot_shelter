@@ -3,7 +3,7 @@ package com.example.shelter_bot.enums;
 //enum-список выбора в меню
 public enum Menu {
     GREETINGS("Приветствую в приюте г. Алматы!"),
-    START("Старт"),
+    START("/start"),
     BACK("Назад"),
     CHOOSE_CAT("Хочу взять из приюта кошку"),
     CHOOSE_DOG("Хочу взять из приюта собаку"),
@@ -16,7 +16,8 @@ public enum Menu {
     DOCUMENTS_LIST("Список необходимых документов"),
     SEND_ANIMAL_REPORT("Прислать отчет о питомце"),
     CALL_VOLUNTEER("Позвать волонтера"),
-    SEND_DATA("Отправить контактные данные для связи");
+    SEND_DATA("Отправить контактные данные для связи"),
+    NOTHING("");
 
     private final String text;
 

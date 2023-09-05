@@ -2,7 +2,7 @@ package com.example.shelter_bot.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+
 
 import javax.persistence.*;
 import java.util.Date;
@@ -12,9 +12,10 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 public class ReportData {
-    @javax.persistence.Id
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "chat_id_report")
     private Long chatId;
     @Column(name = "pet_name")
     private String name;
@@ -23,7 +24,7 @@ public class ReportData {
     private String behaviour;
     @Column(name = "message_date")
     private Date lastMessage;
-    @Lob
+    @Column(name = "data_report")
     private byte[] data;
 
     public ReportData(Long chatId, String name, String health, String ration, String behaviour, Date lastMessage, byte[] data) {

@@ -10,9 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * Класс с методами отображения меню для пользователя в виде клавиатуры
+ *
+ * @author Riyaz Karimullin
+ */
 @Component
 public class KeyBoard {
-
     private final Logger logger = LoggerFactory.getLogger(KeyBoard.class);
     private TelegramBot telegramBot;
 
@@ -20,53 +24,72 @@ public class KeyBoard {
         this.telegramBot = telegramBot;
     }
 
-    //Отображает меню
+    /**
+     * Метод отображает меню, где выбирается приют.
+     *
+     * @param chatId
+     */
     public void pickMenu(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
                 Menu.CHOOSE_CAT.getText(), Menu.CHOOSE_DOG.getText());
-        sendResponseMenu(chatId, replyKeyboardMarkup, "Выберите кого вы хотите взять из приюта: ");
+        sendResponseMenu(chatId, replyKeyboardMarkup, "Выберите приют в меню ниже.");
     }
 
-    //Главное меню
+    /**
+     * Метод отображает главное меню приюта.
+     *
+     * @param chatId
+     */
     public void shelterMainMenu(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                Menu.BASIC_INFO.getText(),
-                Menu.TAKE_ANIMAL_HOME.getText(),
-                Menu.SEND_ANIMAL_REPORT.getText(),
-                Menu.CALL_VOLUNTEER.getText());
-        sendResponseMenu(chatId, replyKeyboardMarkup, "Главное меню приюта: "
-         + "Чтобы вернуться назад нажмите команду /back");
+                new String[]{Menu.BASIC_INFO.getText(), Menu.TAKE_ANIMAL_HOME.getText()},
+                new String[]{Menu.SEND_ANIMAL_REPORT.getText(), Menu.CALL_VOLUNTEER.getText()});
+        sendResponseMenu(chatId, replyKeyboardMarkup, "Ниже представлено главное меню приюта. " +
+                "Чтобы вернуться к выбору приюта, напишите команду /start");
     }
 
-    //Метод для отображения меню о приюте
-    //аналогично прошлому методу: выбор между коммандами меню с информацией
-    //public void shelterInfoMenu
+    /**
+     * Метод отображает меню, с информацией о приюте.
+     *
+     * @param chatId
+     */
     public void shelterInfoMenu(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                Menu.BASIC_INFO.getText(),
+                Menu.SHELTER_INFO.getText(),
                 Menu.ADDRESS_INFO.getText());
         replyKeyboardMarkup.addRow(new KeyboardButton(Menu.CALL_VOLUNTEER.getText()),
                 new KeyboardButton(Menu.SEND_DATA.getText()).requestContact(true));
-        replyKeyboardMarkup.addRow(Menu.START.getText());
+        replyKeyboardMarkup.addRow(Menu.CHOOSE_ACTION.getText());
         sendResponseMenu(chatId, replyKeyboardMarkup, "Вы можете получить информацию о приюте в меню.");
     }
 
-    //метод для инфо как приютить питомца
+    /**
+     * Метод отображает меню, с информацией о том, как взять питомца из приюта.
+     *
+     * @param chatId
+     */
     public void shelterInfoHowAdoptPetMenu(long chatId) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(Menu.RECOMMENDATIONS_LIST.getText(),
                 Menu.DOCUMENTS_LIST.getText());
         replyKeyboardMarkup.addRow(new KeyboardButton(Menu.CALL_VOLUNTEER.getText()),
                 new KeyboardButton(Menu.SEND_DATA.getText()).requestContact(true));
-        replyKeyboardMarkup.addRow(Menu.START.getText());
+        replyKeyboardMarkup.addRow(Menu.CHOOSE_ACTION.getText());
         sendResponseMenu(chatId, replyKeyboardMarkup, "Информация о том, как взять животное из приюта");
     }
 
-    //Метод для укорочения отправки ответа в меню
+    /**
+     * Метод принимает клавиатуру и текст, и отправляет ответ в чат по chatId.
+     *
+     * @param chatId
+     * @param replyKeyboardMarkup
+     * @param text
+     */
     public void sendResponseMenu(long chatId, ReplyKeyboardMarkup replyKeyboardMarkup, String text) {
-        SendMessage sendMessage = new SendMessage(chatId, text).replyMarkup(replyKeyboardMarkup.resizeKeyboard(true));
+        SendMessage sendMessage = new SendMessage(
+                chatId, text).replyMarkup(replyKeyboardMarkup.resizeKeyboard(true));
         SendResponse sendResponse = telegramBot.execute(sendMessage);
-        if (sendResponse.isOk()) {
-            logger.error("Ошибка в отправке сообщения: ", sendResponse.description());
+        if (!sendResponse.isOk()) {
+            logger.error("Error during sending message: {}", sendResponse.description());
         }
     }
 }

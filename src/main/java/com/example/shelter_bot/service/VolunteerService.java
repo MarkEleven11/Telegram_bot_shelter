@@ -1,7 +1,7 @@
 package com.example.shelter_bot.service;
 
-import com.example.shelter_bot.entity.Shelter;
 import com.example.shelter_bot.entity.Volunteer;
+import com.example.shelter_bot.enums.PetType;
 import com.example.shelter_bot.exceptions.VolunteerNotFoundException;
 import com.example.shelter_bot.repository.VolunteerRepository;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -48,8 +48,8 @@ public class VolunteerService {
     }
 
     //Метод вызова волонтера
-    public SendMessage callVolunteer(Long chatId, Shelter shelter) {
-        String nickname = volunteerRepository.findAllById(shelter.getId()).stream()
+    public SendMessage callVolunteer(Long chatId, PetType petType) {
+        String nickname = volunteerRepository.findAllById(chatId).stream()
                 .map(v -> v.getVolunteerName())
                 .findAny()
                 .orElseThrow(() -> new VolunteerNotFoundException());

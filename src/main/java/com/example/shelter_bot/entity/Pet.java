@@ -15,9 +15,6 @@ public class Pet {
     @Enumerated(EnumType.STRING)
     private PetType petType;
 
-    @Column(name = "chat_id")
-    private Long chatId;
-
     private String petName;
 
     private boolean availability;
@@ -25,14 +22,6 @@ public class Pet {
     public Pet(long id, PetType petType, String petName, boolean availability) {
         this.id = id;
         this.petType = petType;
-        this.petName = petName;
-        this.availability = availability;
-    }
-
-    public Pet(long id, PetType petType, Long chatId, String petName, boolean availability) {
-        this.id = id;
-        this.petType = petType;
-        this.chatId = chatId;
         this.petName = petName;
         this.availability = availability;
     }
@@ -53,14 +42,6 @@ public class Pet {
 
     public void setPetType(PetType petType) {
         this.petType = petType;
-    }
-
-    public Long getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(Long chatId) {
-        this.chatId = chatId;
     }
 
     public String getPetName() {

@@ -7,21 +7,16 @@ import com.example.shelter_bot.keyboard.KeyBoard;
 import com.example.shelter_bot.service.*;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
-import com.pengrad.telegrambot.model.File;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.PhotoSize;
-import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.request.ForwardMessage;
 import com.pengrad.telegrambot.request.GetFile;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetFileResponse;
 import com.pengrad.telegrambot.response.SendResponse;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.example.shelter_bot.service.SendMessageService;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -30,42 +25,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.example.shelter_bot.enums.PetType.CAT;
-
+/*
 @Component
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
-
     private final TelegramBot telegramBot;
-
-    /**
-     * HashMap для сохранения выбора приюта потенциальным клиентом.
-     */
-    @Getter
-    private static final HashMap<Long, Shelter> clientIdToShelter = new HashMap<>();
-
-    private final UserService userService;
+    private static final String REGEX_MESSAGE = "(Рацион:)(\\s)(\\W+)(;)\n" +
+            "(Самочувствие:)(\\s)(\\W+)(;)\n" +
+            "(Поведение:)(\\s)(\\W+)(;)";
+    private final Pattern pattern = Pattern.compile(REGEX_MESSAGE);
     private final ReportDataService reportDataService;
-    private final ShelterService shelterService;
     private final ClientService clientService;
-    private final SendMessageService sendMessageService = new SendMessageServiceImpl();
-    final Pattern pattern = Pattern.compile("(\"\\D+\")\\s+(\"\\d{10,11}\")");
-    boolean contactUserFlag;
-    boolean contactClientFlag;
-    KeyBoard keyBoard;
-    ContextService contextService;
+    private final KeyBoard keyBoard;
+    private final ContextService contextService;
     @Value("${volunteer-chat-id}")
     private Long volunteerChatId;
-    VolunteerService volunteerService;
 
-    public TelegramBotUpdatesListener(TelegramBot telegramBot, UserService userService,
-                                      ReportDataService reportDataService, ShelterService shelterService,
-                                      ClientService clientService) {
+    public TelegramBotUpdatesListener(TelegramBot telegramBot, ReportDataService reportDataService, ClientService clientService, KeyBoard keyBoard, ContextService contextService) {
         this.telegramBot = telegramBot;
-        this.userService = userService;
         this.reportDataService = reportDataService;
-        this.shelterService = shelterService;
         this.clientService = clientService;
+        this.keyBoard = keyBoard;
+        this.contextService = contextService;
     }
 
     @PostConstruct
@@ -77,6 +59,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод предназначенный для switch-case,
      * который принимает текст сообщения пользователя и сравнивает со значениями enum класса ButtonCommand
      */
+/*
     public static Menu parse(String buttonText) {
         Menu[] values = Menu.values();
         for (Menu text : values) {
@@ -93,166 +76,134 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * @param updates список всех поступивших апдейтов.
      * @return количество обработанных апдейтов.
      */
+/*
     @Override
     public int process(List<Update> updates) {
-        updates.stream()
-                .filter(update -> update.message() != null || update.callbackQuery() != null)
-                .forEach(this::handleUpdate);
-
-        return UpdatesListener.CONFIRMED_UPDATES_ALL;
-    }
-
-    /**
-     * Метод обрабатывает поступившие сообщения.
-     *
-     * @param update сообщение, поступившее в бот.
-     */
-    private void handleUpdate(Update update) {
-        Message message = update.message();
-        Long id = message.chat().id();
-        String text = message.text();
-        logger.info("Processing update: {}", update);
-        System.out.println(Menu.GREETINGS.getText());
-        if (text != null && update.message().photo() == null) {
-            try {
-                switch (parse(text)) {
-                    case START -> {
-                        if (contextService.getByChatId(id).isEmpty()) {
-                            sendResponseMessage(id, "Привет! Я могу показать информацию о приютах," +
-                                    "как взять животное из приюта и принять отчет о питомце");
-                            Context context = new Context();
-                            context.setChatId(id);
+        try {
+            updates.forEach(update -> {
+                logger.info("Handles update: {}", update);
+                Message message = update.message();
+                long id = message.chat().id();
+                String text = message.text();
+                int messageId = message.messageId();
+                Contact contact = update.message().contact();
+                if (text != null && update.message().photo() == null && contact == null) {
+                    switch (parse(text)) {
+                        case START -> {
+                            if (contextService.getByChatId(id).isEmpty()) {
+                                sendResponseMessage(id, "Привет! Я могу показать информацию о приютах," +
+                                        "как взять животное из приюта и принять отчет о питомце");
+                                Context context = new Context();
+                                context.setChatId(id);
+                                contextService.saveContext(context);
+                            }
+                            keyBoard.pickMenu(id);
+                        }
+                        case CHOOSE_CAT -> {
+                            Context context = contextService.getByChatId(id).get();
+                            context.setPetType(CAT);
                             contextService.saveContext(context);
+                            sendResponseMessage(id, "Вы выбрали кошачий приют.");
+                            keyBoard.shelterMainMenu(id);
                         }
-                        keyBoard.pickMenu(id);
-                    }
-                    case CHOOSE_CAT -> {
-                        clientIdToShelter.put(id, shelterService.chooseShelter(CAT));
-                        telegramBot.execute(shelterService.giveMenu(id));
-                        Context context = contextService.getByChatId(id).get();
-                        context.setPetType(CAT);
-                        contextService.saveContext(context);
-                        sendResponseMessage(id, "Вы выбрали кошачий приют.");
-                        keyBoard.shelterMainMenu(id);
-                    }
                     case CHOOSE_DOG -> {
-                        clientIdToShelter.put(id, shelterService.chooseShelter(PetType.DOG));
-                        telegramBot.execute(shelterService.giveMenu(id));
-                        Context context = contextService.getByChatId(id).get();
-                        context.setPetType(PetType.DOG);
-                        contextService.saveContext(context);
-                        sendResponseMessage(id, "Вы выбрали собачий приют.");
-                        keyBoard.shelterMainMenu(id);
-                    }
-                    case CHOOSE_ACTION -> keyBoard.shelterMainMenu(id);
-                    case TAKE_ANIMAL_HOME -> keyBoard.shelterInfoHowAdoptPetMenu(id);
-                    case SHELTER_INFO -> keyBoard.shelterInfoMenu(id);
-                    case BASIC_INFO -> {
-                        if (contextService.getByChatId(id).isPresent()) {
                             Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(CAT)) {
-                                sendResponseMessage(id, """
-                                        Информация о кошачем приюте - ...
-                                        Рекомендации о технике безопасности на территории кошачего приюта - ...
-                                        Контактные данные охраны - ...
-                                        """);
-                            } else if (context.getPetType().equals(PetType.DOG)) {
-                                sendResponseMessage(id, """
-                                        Информация о собачем приюте - ...
-                                        Рекомендации о технике безопасности на территории собачего приюта - ...
-                                        Контактные данные охраны - ...
-                                        """);
+                            context.setPetType(PetType.DOG);
+                            contextService.saveContext(context);
+                            sendResponseMessage(id, "Вы выбрали собачий приют.");
+                            keyBoard.shelterMainMenu(id);
+                        }
+                        case CHOOSE_ACTION -> keyBoard.shelterMainMenu(id);
+                        case TAKE_ANIMAL_HOME -> keyBoard.shelterInfoHowAdoptPetMenu(id);
+                        case SHELTER_INFO -> keyBoard.shelterInfoMenu(id);
+                            case BASIC_INFO -> {
+                            if (contextService.getByChatId(id).isPresent()) {
+                                Context context = contextService.getByChatId(id).get();
+                                if (context.getPetType().equals(CAT)) {
+                                    sendResponseMessage(id, """
+                                            Информация о кошачем приюте - ...
+                                            Рекомендации о технике безопасности на территории кошачего приюта - ...
+                                            Контактные данные охраны - ...
+                                            """);
+                                } else if (context.getPetType().equals(PetType.DOG)) {
+                                    sendResponseMessage(id, """
+                                            Информация о собачем приюте - ...
+                                            Рекомендации о технике безопасности на территории собачего приюта - ...
+                                            Контактные данные охраны - ...
+                                            """);
+                                }
                             }
                         }
-                    }
-                    case ADDRESS_INFO -> {
-                        if (contextService.getByChatId(id).isPresent()) {
-                            Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(CAT)) {
-                                sendResponseMessage(id, """
-                                        Адрес кошачего приюта - ...
-                                        График работы - ...
-                                        """);
-                            } else if (context.getPetType().equals(PetType.DOG)) {
-                                sendResponseMessage(id, """
-                                        Адрес собачего приюта - ...
-                                        График работы - ...
-                                        """);
+                        case ADDRESS_INFO -> {
+                            if (contextService.getByChatId(id).isPresent()) {
+                                Context context = contextService.getByChatId(id).get();
+                                if (context.getPetType().equals(CAT)) {
+                                    sendResponseMessage(id, """
+                                            Адрес кошачего приюта - ...
+                                            График работы - ...
+                                            """);
+                                } else if (context.getPetType().equals(PetType.DOG)) {
+                                    sendResponseMessage(id, """
+                                            Адрес собачего приюта - ...
+                                            График работы - ...
+                                            """);
+                                }
                             }
                         }
-                    }
-                    case RECOMMENDATIONS_LIST -> {
-                        if (contextService.getByChatId(id).isPresent()) {
-                            Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(CAT)) {
-                                sendResponseMessage(id, """
-                                        Правила знакомства с животным - ...
-                                        Список рекомендаций - ...
-                                        Список причин отказа в выдаче животного - ...
-                                        """);
-                            } else if (context.getPetType().equals(PetType.DOG)) {
-                                sendResponseMessage(id, """
-                                        Правила знакомства с животным - ...
-                                        Список рекомендаций - ...
-                                        Советы кинолога по первичному общению с собакой - ...
-                                        Рекомендации по проверенным кинологам для дальнейшего обращения к ним
-                                        Список причин отказа в выдаче животного - ...
-                                        """);
+                        case RECOMMENDATIONS_LIST -> {
+                            if (contextService.getByChatId(id).isPresent()) {
+                                Context context = contextService.getByChatId(id).get();
+                                if (context.getPetType().equals(CAT)) {
+                                    sendResponseMessage(id, """
+                                            Правила знакомства с животным - ...
+                                            Список рекомендаций - ...
+                                            Список причин отказа в выдаче животного - ...
+                                            """);
+                                } else if (context.getPetType().equals(PetType.DOG)) {
+                                    sendResponseMessage(id, """
+                                            Правила знакомства с животным - ...
+                                            Список рекомендаций - ...
+                                            Советы кинолога по первичному общению с собакой - ...
+                                            Рекомендации по проверенным кинологам для дальнейшего обращения к ним
+                                            Список причин отказа в выдаче животного - ...
+                                            """);
+                                }
                             }
                         }
-                    }
-                    case DOCUMENTS_LIST -> {
-                        if (contextService.getByChatId(id).isPresent()) {
-                            Context context = contextService.getByChatId(id).get();
-                            if (context.getPetType().equals(CAT)) {
-                                sendResponseMessage(id,
-                                        "Для взятия кота из приюта необходимы такие документы: ...");
-                            } else if (context.getPetType().equals(PetType.DOG)) {
-                                sendResponseMessage(id,
-                                        "Для взятия собаки из приюта необходимы такие документы: ...");
+                        case DOCUMENTS_LIST -> {
+                            if (contextService.getByChatId(id).isPresent()) {
+                                Context context = contextService.getByChatId(id).get();
+                                if (context.getPetType().equals(CAT)) {
+                                    sendResponseMessage(id,
+                                            "Для взятия кота из приюта необходимы такие документы: ...");
+                                } else if (context.getPetType().equals(PetType.DOG)) {
+                                    sendResponseMessage(id,
+                                            "Для взятия собаки из приюта необходимы такие документы: ...");
+                                }
                             }
                         }
-                    }
-                    case SEND_ANIMAL_REPORT -> {
-                        telegramBot.execute(sendMessageService.send(id,
-                                "Введите информацию о питомце: \"кличку питомца\" " +
-                                        "\"фотографию питомца\"" + "\"рацион питомца\"" +
-                                        "\"описание самочувствия питомца\"" + "\"особенности поведения\"" + "\"дату отчета\""));
+                        case SEND_ANIMAL_REPORT -> {
+                            sendResponseMessage(id,
+                                    "Введите информацию о питомце: \"кличку питомца\" " +
+                                            "\"фотографию питомца\"" + "\"рацион питомца\"" +
+                                            "\"описание самочувствия питомца\"" + "\"особенности поведения\"" + "\"дату отчета\"");
 
-                    }
-                    case CALL_VOLUNTEER -> {
-                        Context context = contextService.getByChatId(id).get();
-                        volunteerService.callVolunteer(id, shelterService.chooseShelter(context.getPetType()));
-                        sendResponseMessage(id, "Мы передали ваше сообщение волонтеру. " +
-                                "Если у вас закрытый профиль отправьте контактные данные," +
-                                "с помощью кнопки в меню - Отправить контактные данные");
-                        sendMessageToVolunteer(id, message.messageId());
-                    }
-                    case SEND_DATA -> {
-                        if (clientIdToShelter.containsKey(id)) {
-                            telegramBot.execute(sendMessageService.send(id,
-                                    "Отправь боту свои фамилию, имя, телефонный номер (из 11 цифр) " +
-                                            "и адрес в следующем формате: " +
-                                            "Иванов Иван 89991234567 Москва, ул. Дальняя, д.5, кв. 10 "));
-                            contactClientFlag = true;
-                        } else {
-                            contactClientFlag = false;
                         }
+                        case CALL_VOLUNTEER -> {
+                            sendResponseMessage(id, "Мы передали ваше сообщение волонтеру. " +
+                                    "Если у вас закрытый профиль отправьте контактные данные," +
+                                    "с помощью кнопки в меню - Отправить контактные данные");
+                            sendMessageToVolunteer(id, messageId);
+                        }
+                        default -> sendResponseMessage(id, "Неизвестная команда! (да)");
                     }
-                    default -> sendResponseMessage(id, "Неизвестная команда!");
                 }
-                Matcher matcher = pattern.matcher((CharSequence) message);
-                if (contactUserFlag && matcher.find()) {
-                    User user = new User(matcher.group(1).replace("\"", ""),
-                            matcher.group(2).replace("\"", ""), clientIdToShelter.get(id));
-                    userService.writeContact(user);
-                    telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
-                } else if (contactClientFlag) {
+                else if (update.message().contact() != null && contextService
+                        .getByChatId(id).isPresent()) {
                     Client client = clientService.createClient(new Client());
                     clientService.createClient(client);
-                    telegramBot.execute(sendMessageService.send(id, "Спасибо! С Вами свяжутся"));
-                } else {
-                    telegramBot.execute(sendMessageService.commandIncorrect(id));
+                    sendResponseMessage(id, "Мы получили ваши контактные данные");
+                    sendResponseMessage(id, "Спасибо! С Вами свяжутся");
                 }
                 if (update.message().photo() != null && update.message().caption() != null) {
                     Calendar calendar = new GregorianCalendar();
@@ -292,15 +243,18 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 } else if (update.message().photo() != null && update.message().caption() == null) {
                     sendResponseMessage(id, "Отчет нужно присылать с описанием!");
                 }
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-            }
+        });
+    }
+        catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
+        return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
     /**
      * Метод отправки текстовых сообщений.
      */
+/*
     public void sendResponseMessage(Long chatId, String text) {
         SendMessage sendMessage = new SendMessage(chatId, text);
         SendResponse sendResponse = telegramBot.execute(sendMessage);
@@ -313,6 +267,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод пересылки сообщения волонтеру
      *
      */
+/*
     public void sendMessageToVolunteer(long chatId, int messageId) {
         Volunteer volunteer = new Volunteer();
         ForwardMessage forwardMessage = new ForwardMessage(volunteer.getId(), chatId, messageId);
@@ -325,6 +280,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     /**
      * Метод получения отчета и отправки его волонтеру
      */
+/*
     public void getReport(Message message, Long petId) {
         PhotoSize photo = message.photo()[0];
         String caption = message.caption();
@@ -360,6 +316,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
      * Метод для разбивки описания под фотографии для добавления полученного текста в отчет
      * @return полученный текст в отчет
      */
+/*
         private List<String> splitCaption(String caption) {
         if (caption == null || caption.isBlank()) {
             throw new IllegalArgumentException("Описание фото не должно быть пустым");
@@ -371,4 +328,4 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             throw new IllegalArgumentException("Проверьте правильность заполнения и повторите отправку");
         }
     }
-}
+}*/
