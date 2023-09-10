@@ -72,6 +72,12 @@ public class TelegramBotUpdateListener implements UpdatesListener {
         return Menu.NOTHING;
     }
 
+    /**
+     * Метод первичной обработки поступивших в бот апдейтов.
+     *
+     * @param updates список всех поступивших апдейтов.
+     * @return количество обработанных апдейтов.
+     */
     @Override
     public int process(List<Update> updates) {
         try {
@@ -362,6 +368,9 @@ public class TelegramBotUpdateListener implements UpdatesListener {
         }
     }
 
+    /**
+     * Метод для получения отчетов
+     */
     public void getReport(Message message, String petName) {
         PhotoSize photo = message.photo()[0];
         String caption = message.caption();

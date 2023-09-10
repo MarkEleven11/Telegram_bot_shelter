@@ -41,7 +41,7 @@ class TelegramBotUpdatesListenerTest {
     @Mock
     private TelegramBot telegramBot;
     @Mock
-    private ContextService contextMock;
+    private ContextService contextService;
     @Mock
     Context context;
     @Mock
@@ -59,42 +59,54 @@ class TelegramBotUpdatesListenerTest {
     private TelegramBotUpdateListener telegramBotUpdatesListener;
 
     @Test
-    public void processingStartTest() throws URISyntaxException, IOException {
+    public void handleStartCommandWithContextEmptyTest() throws URISyntaxException, IOException {
+        Update update = getUpdate("/start");
+        long chatId = update.message().chat().id();
+        Context context = new Context();
+        context.setChatId(chatId);
 
-        String json = Files.readString(Path.of(getClass().getClassLoader().getResource("update.json")
-                .toURI()));
-        Update update = BotUtils.fromJson(json.replace("%text%", "/start"), Update.class);
-        SendResponse sendResponse = BotUtils.fromJson("""
-                {
-                "ok": true
-                }
-                """, SendResponse.class);
-        when(telegramBot.execute(any())).thenReturn(sendResponse);
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.empty());
+        when(contextService.saveContext(context)).thenReturn(context);
 
-        telegramBotUpdatesListener.process((List<Update>) update);
+        SendMessage actual = getSendMessage(update);
 
-        ArgumentCaptor<SendMessage> argumentCaptor = ArgumentCaptor.forClass(SendMessage.class);
-        verify(telegramBot).execute(argumentCaptor.capture());
-        SendMessage actual = argumentCaptor.getValue();
-        Assertions.assertThat(actual.getParameters().get("chat_id")).isEqualTo(update.message().chat().id());
+        Assertions.assertThat(actual.getParameters().get("chat_id"))
+                .isEqualTo(chatId);
+        Assertions.assertThat(actual.getParameters().get("text")).isEqualTo("Привет! Я могу показать информацию о приютах," +
+                "как взять животное из приюта и принять отчет о питомце");
+        verify(contextService, times(1)).getByChatId(chatId);
+        verify(contextService, times(1)).saveContext(context);
+        verify(keyBoard, times(1)).pickMenu(chatId);
+    }
 
-        Assertions.assertThat(actual.getParameters().get("text"));
+    @Test
+    public void handleStartCommandWithContextExistsTest() throws URISyntaxException, IOException {
+        Update update = getUpdate("/start");
+        long chatId = update.message().chat().id();
+
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.of(context));
+
+        telegramBotUpdatesListener.process(Collections.singletonList(update));
+
+        verify(contextService, times(1)).getByChatId(chatId);
+        verify(keyBoard, times(1)).pickMenu(chatId);
+        verify(contextService, never()).saveContext(any(Context.class));
     }
 
     @Test
     public void handleShelterCommandTest() throws URISyntaxException, IOException {
         Update update = getUpdate("Кошачий");
         long chatId = update.message().chat().id();
-        when(contextMock.getByChatId(chatId)).thenReturn(Optional.ofNullable(context));
-        when(contextMock.saveContext(context)).thenReturn(context);
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.ofNullable(context));
+        when(contextService.saveContext(context)).thenReturn(context);
 
         SendMessage actual = getSendMessage(update);
 
         Assertions.assertThat(actual.getParameters().get("chat_id"))
                 .isEqualTo(chatId);
         Assertions.assertThat(actual.getParameters().get("text")).isEqualTo("Вы выбрали кошачий приют.");
-        verify(contextMock, times(2)).getByChatId(chatId);
-        verify(contextMock, times(1)).saveContext(context);
+        verify(contextService, times(2)).getByChatId(chatId);
+        verify(contextService, times(1)).saveContext(context);
         verify(keyBoard, times(1)).shelterMainMenu(chatId);
     }
 
@@ -135,7 +147,7 @@ class TelegramBotUpdatesListenerTest {
         Update update = getUpdate("Адрес и график работы приюта");
         long chatId = update.message().chat().id();
 
-        when(contextMock.getByChatId(chatId)).thenReturn(Optional.of(context));
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.of(context));
         when(context.getPetType()).thenReturn(PetType.DOG);
 
         SendMessage actual = getSendMessage(update);
@@ -146,7 +158,7 @@ class TelegramBotUpdatesListenerTest {
                     Адрес собачего приюта - ...
                     График работы - ...
                     """);
-        verify(contextMock, times(2)).getByChatId(chatId);
+        verify(contextService, times(2)).getByChatId(chatId);
     }
 
     @Test
@@ -154,7 +166,7 @@ class TelegramBotUpdatesListenerTest {
         Update update = getUpdate("Список рекомендаций и советов");
         long chatId = update.message().chat().id();
 
-        when(contextMock.getByChatId(chatId)).thenReturn(Optional.of(context));
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.of(context));
         when(context.getPetType()).thenReturn(PetType.CAT);
 
         SendMessage actual = getSendMessage(update);
@@ -166,7 +178,7 @@ class TelegramBotUpdatesListenerTest {
                     Список рекомендаций - ...
                     Список причин отказа в выдаче животного - ...
                     """);
-        verify(contextMock, times(2)).getByChatId(chatId);
+        verify(contextService, times(2)).getByChatId(chatId);
     }
 
     @Test
@@ -174,7 +186,7 @@ class TelegramBotUpdatesListenerTest {
         Update update = getUpdate("Список необходимых документов");
         long chatId = update.message().chat().id();
 
-        when(contextMock.getByChatId(chatId)).thenReturn(Optional.of(context));
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.of(context));
         when(context.getPetType()).thenReturn(PetType.CAT);
 
         SendMessage actual = getSendMessage(update);
@@ -182,7 +194,7 @@ class TelegramBotUpdatesListenerTest {
         Assertions.assertThat(actual.getParameters().get("chat_id"))
                 .isEqualTo(chatId);
         Assertions.assertThat(actual.getParameters().get("text")).isEqualTo("Для взятия кота из приюта необходимы такие документы: ...");
-        verify(contextMock, times(2)).getByChatId(chatId);
+        verify(contextService, times(2)).getByChatId(chatId);
     }
 
     @Test
@@ -273,8 +285,7 @@ class TelegramBotUpdatesListenerTest {
         when(reportDataService.getAll()).thenReturn(Collections.singletonList(report));
         when(context.getClient()).thenReturn(clientMock);
         when(context.getPetType()).thenReturn(PetType.CAT);
-        when(clientMock.getName()).thenReturn(petName);
-        when(contextMock.getByChatId(chatId)).thenReturn(Optional.of(context));
+        when(contextService.getByChatId(chatId)).thenReturn(Optional.of(context));
 
         telegramBotUpdatesListener.process(Collections.singletonList(update));
 
@@ -296,7 +307,7 @@ class TelegramBotUpdatesListenerTest {
         Assertions.assertThat(actualForward.getParameters().get("from_chat_id"))
                 .isEqualTo(chatId);
         Assertions.assertThat(actualForward.getParameters().get("message_id")).isEqualTo(2);
-        verify(contextMock, times(1)).getByChatId(chatId);
+        verify(contextService, times(1)).getByChatId(chatId);
 
     }
 
@@ -313,7 +324,7 @@ class TelegramBotUpdatesListenerTest {
                     """, SendResponse.class);
 
 
-            when(contextMock.getByChatId(chatId)).thenReturn(Optional.of(context));
+            when(contextService.getByChatId(chatId)).thenReturn(Optional.of(context));
             when(context.getPetType()).thenReturn(PetType.CAT);
             when(context.getClient()).thenReturn(clientMock);
             when(clientService.updateClient(any(Client.class))).thenReturn(clientMock);
@@ -335,13 +346,13 @@ class TelegramBotUpdatesListenerTest {
             Assertions.assertThat(actualForward.getParameters().get("from_chat_id"))
                     .isEqualTo(chatId);
             Assertions.assertThat(actualForward.getParameters().get("message_id")).isEqualTo(1);
-            verify(contextMock, times(2)).getByChatId(chatId);
+            verify(contextService, times(2)).getByChatId(chatId);
             verify(clientService, times(1)).updateClient(any(Client.class));
         }
 
     private Update getUpdate(String text) throws URISyntaxException, IOException {
         String json = Files.readString(
-                Path.of(TelegramBotUpdatesListenerTest.class.getResource("update.json").toURI()));
+                Path.of(Objects.requireNonNull(TelegramBotUpdatesListenerTest.class.getResource("update.json")).toURI()));
         return BotUtils.fromJson(json.replace("%text%", text), Update.class);
     }
 
