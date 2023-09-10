@@ -29,8 +29,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.example.shelter_bot.enums.Menu.CHOOSE_CAT;
-import static com.example.shelter_bot.enums.Menu.CHOOSE_DOG;
 import static com.example.shelter_bot.enums.PetType.CAT;
 
 @Component

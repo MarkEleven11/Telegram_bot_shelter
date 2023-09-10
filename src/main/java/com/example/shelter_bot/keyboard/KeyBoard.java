@@ -59,7 +59,7 @@ public class KeyBoard {
                 Menu.ADDRESS_INFO.getText());
         replyKeyboardMarkup.addRow(new KeyboardButton(Menu.CALL_VOLUNTEER.getText()),
                 new KeyboardButton(Menu.SEND_DATA.getText()).requestContact(true));
-        replyKeyboardMarkup.addRow(Menu.CHOOSE_ACTION.getText());
+        replyKeyboardMarkup.addRow(Menu.START.getText());
         sendResponseMenu(chatId, replyKeyboardMarkup, "Вы можете получить информацию о приюте в меню.");
     }
 
@@ -73,7 +73,7 @@ public class KeyBoard {
                 Menu.DOCUMENTS_LIST.getText());
         replyKeyboardMarkup.addRow(new KeyboardButton(Menu.CALL_VOLUNTEER.getText()),
                 new KeyboardButton(Menu.SEND_DATA.getText()).requestContact(true));
-        replyKeyboardMarkup.addRow(Menu.CHOOSE_ACTION.getText());
+        replyKeyboardMarkup.addRow(Menu.START.getText());
         sendResponseMenu(chatId, replyKeyboardMarkup, "Информация о том, как взять животное из приюта");
     }
 
