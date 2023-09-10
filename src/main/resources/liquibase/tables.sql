@@ -36,3 +36,10 @@ CREATE TABLE IF NOT EXISTS report
     message_date           timestamp,
     file_img               bytea
 );
+
+CREATE TABLE IF NOT EXISTS context
+(
+    chat_id      BIGSERIAL PRIMARY KEY,
+    pet_type      INTEGER,
+    client_id    BIGINT REFERENCES client (id)
+);
